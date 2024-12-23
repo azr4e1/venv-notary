@@ -42,7 +42,7 @@ func TestCreatesAVirtualEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.Remove(dir)
-	err = VenvCreate(dir)
+	err = Venv{dir}.VenvCreate()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestFailsAtCreatingAVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvCreate(dir)
+	err = Venv{dir}.VenvCreate()
 	if err == nil {
 		t.Error("Creates virtual env even when directory already exists")
 	}
@@ -89,7 +89,7 @@ func TestFailsAtCreatingAVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvCreate(file.Name())
+	err = Venv{file.Name()}.VenvCreate()
 	if err == nil {
 		t.Error("Creates virtual env even when file already exists")
 	}
@@ -105,11 +105,12 @@ func TestCheckIsVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvCreate(dir)
+	v := Venv{dir}
+	err = v.VenvCreate()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !IsVenv(dir) {
+	if !v.IsVenv() {
 		t.Error("directory is an environment!")
 	}
 }
@@ -124,19 +125,21 @@ func TestCheckIsNotVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvCreate(dir)
+	v := Venv{dir}
+	err = v.VenvCreate()
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = os.Remove(path.Join(dir, "bin/activate"))
-	if IsVenv(dir) {
+	if v.IsVenv() {
 		t.Error("directory is not an environment!")
 	}
 	file, err := os.CreateTemp("", "*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if IsVenv(file.Name()) {
+	v = Venv{file.Name()}
+	if v.IsVenv() {
 		t.Error("file is not an environment!")
 	}
 }
@@ -151,15 +154,16 @@ func TestDeleteVenv_DeletesTheVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvCreate(dir)
+	v := Venv{dir}
+	err = v.VenvCreate()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvDelete(dir)
+	err = v.VenvDelete()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if IsVenv(dir) {
+	if v.IsVenv() {
 		t.Error("Failed at deleting venv")
 	}
 }
@@ -170,7 +174,8 @@ func TestDeleteVenv_DoesNotDeleteVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvDelete(dir)
+	v := Venv{dir}
+	err = v.VenvDelete()
 	if err == nil {
 		t.Error("should return error")
 	}
@@ -178,7 +183,8 @@ func TestDeleteVenv_DoesNotDeleteVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = VenvDelete(file.Name())
+	v = Venv{file.Name()}
+	err = v.VenvDelete()
 	if err == nil {
 		t.Error("should return error")
 	}

@@ -17,8 +17,9 @@ func TestCommandExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = VenvCreate(dir)
-	if !IsVenv(dir) {
+	v := Venv{dir}
+	_ = v.VenvCreate()
+	if !v.IsVenv() {
 		t.Error("Command doesn't exist.")
 	}
 }
