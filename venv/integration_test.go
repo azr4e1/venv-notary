@@ -27,8 +27,8 @@ func TestVenvCommandExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := Venv{dir}
-	_ = v.VenvCreate()
+	v := Venv(dir)
+	_ = v.Create()
 	if !v.IsVenv() {
 		t.Error("python venv module is not installed on the system.")
 	}

@@ -1,27 +1,33 @@
 package venv
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
+)
+
+type Location string
+
+const (
+	GlobalLoc Location = "global"
+	LocalLoc  Location = "local"
 )
 
 const (
 	DATAHOMEENV = "XDG_DATA_HOME"
 	DATAHOMEDIR = ".local/share"
 	NotaryDir   = "venv-notary"
-	VenvList    = "venv-list.txt"
-	VenvDir     = "global-venv"
 )
 
 type Venv string
 
 type Notary struct {
-	venvList   string
-	globalVenv string
+	venvDir  string
+	venvList map[Venv]Location
 }
 
 func (v Venv) IsVenv() bool {
@@ -77,18 +83,149 @@ func (v Venv) Delete() error {
 	return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
 }
 
-func NewNotary() Notary {
+func NewNotary() (Notary, error) {
 	dataHome := os.Getenv(DATAHOMEENV)
 	if dataHome == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			panic(err)
+			return Notary{}, err
 		}
-		dataHome = path.Join(home, DATAHOMEDIR)
+		dataHome = filepath.Join(home, DATAHOMEDIR)
 	}
-	notaryDir := path.Join(dataHome, NotaryDir)
-	return Notary{
-		venvList:   path.Join(notaryDir, VenvList),
-		globalVenv: path.Join(notaryDir, VenvDir),
+	notaryDir := filepath.Join(dataHome, NotaryDir)
+	notary := Notary{
+		venvDir: notaryDir,
+	}
+	err := notary.SetUp()
+	if err != nil {
+		return Notary{}, err
+	}
+	err = notary.GetVenvs()
+	if err != nil {
+		return Notary{}, err
+	}
+	return notary, nil
+}
+
+func (n Notary) SetUp() error {
+	globalDir := n.GlobalDir()
+	localDir := n.LocalDir()
+	err := os.MkdirAll(globalDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(localDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (n Notary) GlobalDir() string {
+	return filepath.Join(n.venvDir, string(GlobalLoc))
+}
+
+func (n Notary) LocalDir() string {
+	return filepath.Join(n.venvDir, string(LocalLoc))
+}
+
+func (n *Notary) GetVenvs() error {
+	globDirs, err := os.ReadDir(n.GlobalDir())
+	if err != nil {
+		return err
+	}
+	localDirs, err := os.ReadDir(n.LocalDir())
+	if err != nil {
+		return err
+	}
+	venvList := map[Venv]Location{}
+
+	// add global venvs
+	for _, g := range globDirs {
+		v := Venv(filepath.Join(n.GlobalDir(), g.Name()))
+		if !v.IsVenv() {
+			continue
+		}
+		venvList[v] = GlobalLoc
+	}
+	// add local venvs
+	for _, g := range localDirs {
+		v := Venv(filepath.Join(n.LocalDir(), g.Name()))
+		if !v.IsVenv() {
+			continue
+		}
+		venvList[v] = LocalLoc
+	}
+	n.venvList = venvList
+	return nil
+}
+
+func createLocalName() (string, error) {
+	currDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	headDir := filepath.Base(currDir)
+	h := sha256.New()
+	h.Write([]byte(currDir))
+	venvName := fmt.Sprintf("%s-%x", headDir, h.Sum(nil))
+
+	return venvName, nil
+}
+
+func (n *Notary) CreateLocal() error {
+	venvName, err := createLocalName()
+	if err != nil {
+		return err
+	}
+	venv := Venv(filepath.Join(n.LocalDir(), venvName))
+	err = venv.Create()
+	if err != nil {
+		return err
+	}
+	n.venvList[venv] = LocalLoc
+	return nil
+}
+
+func (n *Notary) CreateGlobal(name string) error {
+	venv := Venv(filepath.Join(n.GlobalDir(), name))
+	err := venv.Create()
+	if err != nil {
+		return err
+	}
+	n.venvList[venv] = GlobalLoc
+	return nil
+}
+
+func (n *Notary) delete(venv Venv) error {
+	err := venv.Delete()
+	if err != nil {
+		return err
+	}
+	delete(n.venvList, venv)
+	return nil
+}
+
+func (n *Notary) DeleteLocal() error {
+	venvName, err := createLocalName()
+	if err != nil {
+		return err
+	}
+	venv := Venv(filepath.Join(n.LocalDir(), venvName))
+	_, ok := n.venvList[venv]
+	if ok {
+		return n.delete(venv)
+	} else {
+		return errors.New("No environment is registered for current directory.")
+	}
+}
+
+func (n *Notary) DeleteGlobal(name string) error {
+	venv := Venv(filepath.Join(n.GlobalDir(), name))
+	_, ok := n.venvList[venv]
+	if ok {
+		return n.delete(venv)
+	} else {
+		return fmt.Errorf("No environment with name '%s' is registered.", name)
 	}
 }

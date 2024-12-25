@@ -15,7 +15,7 @@ func TestCreatesAVirtualEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.Remove(dir)
-	err = Venv{dir}.VenvCreate()
+	err = Venv(dir).Create()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestFailsAtCreatingAVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Venv{dir}.VenvCreate()
+	err = Venv(dir).Create()
 	if err == nil {
 		t.Error("Creates virtual env even when directory already exists")
 	}
@@ -62,7 +62,7 @@ func TestFailsAtCreatingAVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Venv{file.Name()}.VenvCreate()
+	err = Venv(file.Name()).Create()
 	if err == nil {
 		t.Error("Creates virtual env even when file already exists")
 	}
@@ -78,8 +78,8 @@ func TestCheckIsVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := Venv{dir}
-	err = v.VenvCreate()
+	v := Venv(dir)
+	err = v.Create()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,8 +98,8 @@ func TestCheckIsNotVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := Venv{dir}
-	err = v.VenvCreate()
+	v := Venv(dir)
+	err = v.Create()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestCheckIsNotVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v = Venv{file.Name()}
+	v = Venv(file.Name())
 	if v.IsVenv() {
 		t.Error("file is not an environment!")
 	}
@@ -127,12 +127,12 @@ func TestDeleteVenv_DeletesTheVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := Venv{dir}
-	err = v.VenvCreate()
+	v := Venv(dir)
+	err = v.Create()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = v.VenvDelete()
+	err = v.Delete()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,8 +147,8 @@ func TestDeleteVenv_DoesNotDeleteVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := Venv{dir}
-	err = v.VenvDelete()
+	v := Venv(dir)
+	err = v.Delete()
 	if err == nil {
 		t.Error("should return error")
 	}
@@ -156,8 +156,8 @@ func TestDeleteVenv_DoesNotDeleteVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v = Venv{file.Name()}
-	err = v.VenvDelete()
+	v = Venv(file.Name())
+	err = v.Delete()
 	if err == nil {
 		t.Error("should return error")
 	}
@@ -172,13 +172,13 @@ func TestNewNotary_GetsHomeDirCorrectly(t *testing.T) {
 	os.Setenv("XDG_DATA_HOME", path.Join(home, ".test"))
 	notary := NewNotary()
 	wantList := path.Join(home, ".test/venv-notary/venv-list.txt")
-	gotList := notary.venvList
+	gotList := notary.venvListPath
 	if wantList != gotList {
 		t.Errorf("want list path '%s', got '%s'", wantList, gotList)
 	}
 
 	wantDir := path.Join(home, ".test/venv-notary/global-venv")
-	gotDir := notary.globalVenv
+	gotDir := notary.venvDir
 	if wantDir != gotDir {
 		t.Errorf("want global dir path '%s', got '%s'", wantDir, gotDir)
 	}
@@ -193,13 +193,13 @@ func TestNewNotary_GetsPathCorrectlyIfHomeDirNotSet(t *testing.T) {
 	os.Setenv("XDG_DATA_HOME", "")
 	notary := NewNotary()
 	wantList := path.Join(home, ".local/share/venv-notary/venv-list.txt")
-	gotList := notary.venvList
+	gotList := notary.venvListPath
 	if wantList != gotList {
 		t.Errorf("want list path '%s', got '%s'", wantList, gotList)
 	}
 
 	wantDir := path.Join(home, ".local/share/venv-notary/global-venv")
-	gotDir := notary.globalVenv
+	gotDir := notary.venvDir
 	if wantDir != gotDir {
 		t.Errorf("want global dir path '%s', got '%s'", wantDir, gotDir)
 	}
