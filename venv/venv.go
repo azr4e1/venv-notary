@@ -17,9 +17,7 @@ const (
 	VenvDir     = "global-venv"
 )
 
-type Venv struct {
-	Path string
-}
+type Venv string
 
 type Notary struct {
 	venvList   string
@@ -27,15 +25,16 @@ type Notary struct {
 }
 
 func (v Venv) IsVenv() bool {
+	dir := string(v)
 	// check dir is created with correct files
-	stat, err := os.Stat(v.Path)
+	stat, err := os.Stat(dir)
 	if err != nil {
 		return false
 	}
 	if !stat.IsDir() {
 		return false
 	}
-	activate_path := path.Join(v.Path, "bin/activate")
+	activate_path := filepath.Join(dir, "bin/activate")
 	stat, err = os.Stat(activate_path)
 	if err != nil {
 		return false
@@ -43,7 +42,7 @@ func (v Venv) IsVenv() bool {
 	if !stat.Mode().IsRegular() {
 		return false
 	}
-	python_path := path.Join(v.Path, "bin/python")
+	python_path := filepath.Join(dir, "bin/python")
 	stat, err = os.Stat(python_path)
 	if err != nil {
 		return false
@@ -54,28 +53,28 @@ func (v Venv) IsVenv() bool {
 	return true
 }
 
-func (v Venv) VenvCreate() error {
-	_, err := os.Stat(v.Path)
+func (v Venv) Create() error {
+	_, err := os.Stat(string(v))
 
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
 			return err
 		}
 	} else {
-		return errors.New("Directory of file already exists with this name.")
+		return errors.New("Directory or file already exists with this name.")
 	}
-	cmd := exec.Command("python", "-m", "venv", v.Path)
+	cmd := exec.Command("python", "-m", "venv", string(v))
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 	return err
 }
 
-func (v Venv) VenvDelete() error {
+func (v Venv) Delete() error {
 	if v.IsVenv() {
-		err := os.RemoveAll(v.Path)
+		err := os.RemoveAll(string(v))
 		return err
 	}
-	return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
+	return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
 }
 
 func NewNotary() Notary {
