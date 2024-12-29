@@ -215,6 +215,14 @@ func createLocalName() (string, error) {
 	return venvName, nil
 }
 
+func removeHash(name string) string {
+	hashLength := HASHLEN + 1
+	if len(name) > hashLength {
+		name = name[:len(name)-(HASHLEN+1)]
+	}
+	return name
+}
+
 func (n *Notary) CreateLocal() error {
 	venvName, err := createLocalName()
 	if err != nil {
@@ -225,8 +233,7 @@ func (n *Notary) CreateLocal() error {
 	if ok {
 		return errors.New("Environment already exists at this location.")
 	}
-	virtualEnvPrompt := venvName[:len(venvName)-(HASHLEN+1)]
-	err = venv.CreateWithName(virtualEnvPrompt)
+	err = venv.CreateWithName(removeHash(venvName))
 	if err != nil {
 		return err
 	}
