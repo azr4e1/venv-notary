@@ -44,16 +44,16 @@ func (v Venv) IsVenv() bool {
 	if !stat.IsDir() {
 		return false
 	}
-	activate_path := filepath.Join(dir, "bin/activate")
-	stat, err = os.Stat(activate_path)
+	activatePath := filepath.Join(dir, "bin/activate")
+	stat, err = os.Stat(activatePath)
 	if err != nil {
 		return false
 	}
 	if !stat.Mode().IsRegular() {
 		return false
 	}
-	python_path := filepath.Join(dir, "bin/python")
-	stat, err = os.Stat(python_path)
+	pythonPath := filepath.Join(dir, "bin/python")
+	stat, err = os.Stat(pythonPath)
 	if err != nil {
 		return false
 	}
@@ -280,6 +280,7 @@ func (n *Notary) DeleteGlobal(name string) error {
 		return fmt.Errorf("No environment with name '%s' is registered.", name)
 	}
 }
+
 func (n Notary) ListGlobal() []Venv {
 	venvs := []Venv{}
 	for venv, loc := range n.venvList {
