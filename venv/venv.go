@@ -103,6 +103,28 @@ func (v Venv) Delete() error {
 	return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
 }
 
+func (v Venv) Activate() error {
+	if !v.IsVenv() {
+		return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
+	}
+	activatePath := filepath.Join(string(v), "bin/activate")
+	cmd := exec.Command("bash", "-c", "source "+activatePath+"; bash")
+	// cmd := exec.Command("bash")
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	return err
+}
+
+func (v Venv) IsActive() bool {
+	venv := os.Getenv("VIRTUAL_ENV")
+	if string(v) == venv {
+		return true
+	}
+	return false
+}
+
 func NewNotary() (Notary, error) {
 	dataHome := os.Getenv(DATAHOMEENV)
 	if dataHome == "" {
