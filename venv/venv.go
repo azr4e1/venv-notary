@@ -300,3 +300,39 @@ func (n Notary) ListLocal() []Venv {
 	return venvs
 }
 
+func (n Notary) ActivateGlobal(name string) error {
+	venv := Venv(filepath.Join(n.GlobalDir(), name))
+	_, ok := n.venvList[venv]
+	if !ok {
+		return fmt.Errorf("No environment with name '%s' is registered.", name)
+	}
+	err := venv.Activate()
+	return err
+}
+
+func (n Notary) ActivateLocal() error {
+	venvName, err := createLocalName()
+	if err != nil {
+		return err
+	}
+	venv := Venv(filepath.Join(n.LocalDir(), venvName))
+	_, ok := n.venvList[venv]
+	if !ok {
+		return errors.New("No environment is registered for current directory.")
+	}
+
+	err = venv.Activate()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (n Notary) GetActiveEnv() (Venv, error) {
+	venv := Venv(os.Getenv("VIRTUAL_ENV"))
+	_, ok := n.venvList[venv]
+	if ok {
+		return venv, nil
+	}
+	return "", errors.New("No active registered virtual environments.")
+}
