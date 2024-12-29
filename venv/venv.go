@@ -280,3 +280,23 @@ func (n *Notary) DeleteGlobal(name string) error {
 		return fmt.Errorf("No environment with name '%s' is registered.", name)
 	}
 }
+func (n Notary) ListGlobal() []Venv {
+	venvs := []Venv{}
+	for venv, loc := range n.venvList {
+		if loc == GlobalLoc {
+			venvs = append(venvs, venv)
+		}
+	}
+	return venvs
+}
+
+func (n Notary) ListLocal() []Venv {
+	venvs := []Venv{}
+	for venv, loc := range n.venvList {
+		if loc == LocalLoc {
+			venvs = append(venvs, venv)
+		}
+	}
+	return venvs
+}
+
