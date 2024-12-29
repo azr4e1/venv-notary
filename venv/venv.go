@@ -23,6 +23,10 @@ const (
 	NotaryDir   = "venv-notary"
 )
 
+const (
+	HASHLEN = 64
+)
+
 type Venv string
 
 type Notary struct {
@@ -70,6 +74,22 @@ func (v Venv) Create() error {
 		return errors.New("Directory or file already exists with this name.")
 	}
 	cmd := exec.Command("python", "-m", "venv", string(v))
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	return err
+}
+
+func (v Venv) CreateWithName(name string) error {
+	_, err := os.Stat(string(v))
+
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+	} else {
+		return errors.New("Directory or file already exists with this name.")
+	}
+	cmd := exec.Command("python", "-m", "venv", "--prompt", name, string(v))
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 	return err
