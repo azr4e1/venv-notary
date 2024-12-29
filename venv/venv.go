@@ -221,7 +221,12 @@ func (n *Notary) CreateLocal() error {
 		return err
 	}
 	venv := Venv(filepath.Join(n.LocalDir(), venvName))
-	err = venv.Create()
+	_, ok := n.venvList[venv]
+	if ok {
+		return errors.New("Environment already exists at this location.")
+	}
+	virtualEnvPrompt := venvName[:len(venvName)-(HASHLEN+1)]
+	err = venv.CreateWithName(virtualEnvPrompt)
 	if err != nil {
 		return err
 	}
