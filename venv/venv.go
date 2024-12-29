@@ -236,6 +236,10 @@ func (n *Notary) CreateLocal() error {
 
 func (n *Notary) CreateGlobal(name string) error {
 	venv := Venv(filepath.Join(n.GlobalDir(), name))
+	_, ok := n.venvList[venv]
+	if ok {
+		return errors.New("Environment already exists with this name.")
+	}
 	err := venv.Create()
 	if err != nil {
 		return err
