@@ -96,6 +96,9 @@ func (v Venv) CreateWithName(name string) error {
 }
 
 func (v Venv) Delete() error {
+	if v.IsActive() {
+		return errors.New("environment is active. Deactivate it before deleting it.")
+	}
 	if v.IsVenv() {
 		err := os.RemoveAll(string(v))
 		return err
@@ -308,10 +311,31 @@ func (n Notary) ListLocal() []Venv {
 	return venvs
 }
 
-func (n Notary) ActivateGlobal(name string) error {
+func (n Notary) GetGlobalVenv(name string) Venv {
 	venv := Venv(filepath.Join(n.GlobalDir(), name))
+
+	return venv
+}
+
+func (n Notary) GetLocalVenv() (Venv, error) {
+	venvName, err := createLocalName()
+	if err != nil {
+		return Venv(""), err
+	}
+	venv := Venv(filepath.Join(n.LocalDir(), venvName))
+
+	return venv, nil
+}
+
+func (n Notary) IsRegistered(venv Venv) bool {
 	_, ok := n.venvList[venv]
-	if !ok {
+
+	return ok
+}
+
+func (n Notary) ActivateGlobal(name string) error {
+	venv := n.GetGlobalVenv(name)
+	if !n.IsRegistered(venv) {
 		return fmt.Errorf("No environment with name '%s' is registered.", name)
 	}
 	err := venv.Activate()
@@ -319,13 +343,11 @@ func (n Notary) ActivateGlobal(name string) error {
 }
 
 func (n Notary) ActivateLocal() error {
-	venvName, err := createLocalName()
+	venv, err := n.GetLocalVenv()
 	if err != nil {
 		return err
 	}
-	venv := Venv(filepath.Join(n.LocalDir(), venvName))
-	_, ok := n.venvList[venv]
-	if !ok {
+	if !n.IsRegistered(venv) {
 		return errors.New("No environment is registered for current directory.")
 	}
 
