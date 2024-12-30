@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/azr4e1/venv-notary/venv"
+	venv "github.com/azr4e1/venv-notary"
 	"github.com/spf13/cobra"
 )
 
