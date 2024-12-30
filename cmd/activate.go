@@ -10,7 +10,7 @@ import (
 var (
 	activateCmd = &cobra.Command{
 		Use:   "activate",
-		Short: "activate a local or global environment in a new shell",
+		Short: "Activate a local or global environment in a new shell",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  activateCobraFunction,
 	}
@@ -25,12 +25,30 @@ func activateCobraFunction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
+		venv, err := notary.GetLocalVenv()
+		if err != nil {
+			return err
+		}
+		if !notary.IsRegistered(venv) {
+			err = notary.CreateLocal()
+			if err != nil {
+				return err
+			}
+		}
 		err = notary.ActivateLocal()
 		if err != nil {
 			return err
 		}
 	} else if len(args) > 0 {
-		err = notary.ActivateGlobal(args[0])
+		name := args[0]
+		venv := notary.GetGlobalVenv(name)
+		if !notary.IsRegistered(venv) {
+			err = notary.CreateGlobal(name)
+			if err != nil {
+				return err
+			}
+		}
+		err = notary.ActivateGlobal(name)
 		if err != nil {
 			return err
 		}

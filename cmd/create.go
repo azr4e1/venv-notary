@@ -10,12 +10,9 @@ import (
 var (
 	createCmd = &cobra.Command{
 		Use:   "create",
-		Short: "Create a local or global virtual environment.",
-		Long: `'create' will create a named virtual environment if choosing to use the --global flag,
-or a virtual environment corresponding to the current directory if choosing to use the --local flag.
-In both instances, the environment is created at $XDG_DATA_HOME/venv-dir.`,
-		RunE: createCobraFunc,
-		Args: cobra.MaximumNArgs(1),
+		Short: "Create a local or global virtual environment",
+		RunE:  createCobraFunc,
+		Args:  cobra.MaximumNArgs(1),
 	}
 )
 

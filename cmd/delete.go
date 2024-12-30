@@ -10,11 +10,9 @@ import (
 var (
 	deleteCmd = &cobra.Command{
 		Use:   "delete",
-		Short: "delete a local or global virtual environment.",
-		Long: `'delete' will delete a named virtual environment if choosing to use the --global flag,
-or a virtual environment corresponding to the current directory if choosing to use the --local flag.`,
-		RunE: deleteCobraFunc,
-		Args: cobra.MaximumNArgs(1),
+		Short: "Delete a local or global virtual environment",
+		RunE:  deleteCobraFunc,
+		Args:  cobra.MaximumNArgs(1),
 	}
 )
 

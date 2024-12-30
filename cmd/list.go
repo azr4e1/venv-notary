@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/azr4e1/venv-notary/venv"
 	"github.com/spf13/cobra"
@@ -12,8 +13,7 @@ import (
 var (
 	listCmd = &cobra.Command{
 		Use:   "list",
-		Short: "list registered environments.",
-		Long:  "this command lists all the registered environments, both global and local",
+		Short: "List registered environments",
 		Args:  cobra.NoArgs,
 		RunE:  listCobraFunc,
 	}
@@ -26,16 +26,16 @@ func listCobraFunc(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		finalStr += globalStr
+		finalStr += fmt.Sprintln(globalStr)
 	}
 	if !globalVenv {
 		localStr, err := printVenvs(true)
 		if err != nil {
 			return err
 		}
-		finalStr += localStr
+		finalStr += fmt.Sprintln(localStr)
 	}
-	fmt.Println(finalStr)
+	fmt.Println(strings.TrimSpace(finalStr))
 	return nil
 }
 

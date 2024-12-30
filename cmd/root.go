@@ -11,10 +11,10 @@ var (
 	localVenv      bool
 	globalVenv     bool
 	rootCmd        = &cobra.Command{
-		Use:   "vn",
-		Short: "A wrapper for python-venv",
-		Long: `venv-notary is an application that makes it easy to manage global and local virtual environments for Python.
-It is a wrapper around python-venv. It does not manage Python installations!`,
+		Use:     "vn",
+		Short:   "A wrapper for python-venv",
+		Long:    `venv-notary is an application that makes it easy to manage global and local virtual environments for Python.`,
+		Version: "0.1.0",
 	}
 )
 
