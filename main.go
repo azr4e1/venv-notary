@@ -1,9 +1,9 @@
 package main
 
 import (
-	v "github.com/azr4e1/venv-notary/venv"
+	"github.com/azr4e1/venv-notary/cmd"
 )
 
 func main() {
-	v.Venv{"venv-p"}.VenvCreate()
+	cmd.Execute()
 }
