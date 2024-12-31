@@ -10,6 +10,7 @@ var (
 	globalVenvName string
 	localVenv      bool
 	globalVenv     bool
+	pythonVersion  string
 	rootCmd        = &cobra.Command{
 		Use:     "vn",
 		Short:   "A wrapper for python-venv",

@@ -25,12 +25,12 @@ func createCobraFunc(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		err = notary.CreateLocal()
+		err = notary.CreateLocal(pythonVersion)
 		if err != nil {
 			return err
 		}
 	} else if len(args) > 0 {
-		err = notary.CreateGlobal(args[0])
+		err = notary.CreateGlobal(args[0], pythonVersion)
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,6 @@ func createCobraFunc(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	// createCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "name of the global venv.")
 	createCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "create a local venv.")
-	// createCmd.MarkFlagsMutuallyExclusive("global", "local")
+	createCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
 }

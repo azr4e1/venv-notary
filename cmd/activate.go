@@ -25,30 +25,33 @@ func activateCobraFunction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		venv, err := notary.GetLocalVenv()
+		venv, err := notary.GetLocalVenv(pythonVersion)
 		if err != nil {
 			return err
 		}
 		if !notary.IsRegistered(venv) {
-			err = notary.CreateLocal()
+			err = notary.CreateLocal(pythonVersion)
 			if err != nil {
 				return err
 			}
 		}
-		err = notary.ActivateLocal()
+		err = notary.ActivateLocal(pythonVersion)
 		if err != nil {
 			return err
 		}
 	} else if len(args) > 0 {
 		name := args[0]
-		venv := notary.GetGlobalVenv(name)
+		venv, err := notary.GetGlobalVenv(name, pythonVersion)
+		if err != nil {
+			return err
+		}
 		if !notary.IsRegistered(venv) {
-			err = notary.CreateGlobal(name)
+			err = notary.CreateGlobal(name, pythonVersion)
 			if err != nil {
 				return err
 			}
 		}
-		err = notary.ActivateGlobal(name)
+		err = notary.ActivateGlobal(name, pythonVersion)
 		if err != nil {
 			return err
 		}
@@ -60,4 +63,5 @@ func activateCobraFunction(cmd *cobra.Command, args []string) error {
 
 func init() {
 	activateCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "activate local venv.")
+	activateCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
 }

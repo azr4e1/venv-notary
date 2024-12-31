@@ -25,12 +25,12 @@ func deleteCobraFunc(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		err = notary.DeleteLocal()
+		err = notary.DeleteLocal(pythonVersion)
 		if err != nil {
 			return err
 		}
 	} else if len(args) > 0 {
-		err = notary.DeleteGlobal(args[0])
+		err = notary.DeleteGlobal(args[0], pythonVersion)
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,6 @@ func deleteCobraFunc(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	// createCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "name of the global venv.")
 	deleteCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "delete a local venv.")
-	// createCmd.MarkFlagsMutuallyExclusive("global", "local")
+	deleteCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "delete venv with this python version")
 }

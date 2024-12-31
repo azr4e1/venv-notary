@@ -52,7 +52,7 @@ func printVenvs(isLocal bool) (string, error) {
 	}
 	var str string
 	var placeholder string
-	var sortedVenvs []venv.Venv
+	var sortedVenvs []string
 	if isLocal {
 		sortedVenvs = notary.ListLocal()
 		str = "Local Environments\n"
@@ -60,15 +60,32 @@ func printVenvs(isLocal bool) (string, error) {
 		sortedVenvs = notary.ListGlobal()
 		str = "Global Environments\n"
 	}
-	slices.Sort(sortedVenvs)
+	slices.SortFunc(sortedVenvs, func(a, b string) int {
+		byteA := []byte(a)
+		byteB := []byte(b)
+		var i int
+		var e byte
+		for i, e = range byteA {
+			if i >= len(byteB) || e > byteB[i] {
+				return 1
+			}
+			if e < byteB[i] {
+				return -1
+			}
+		}
+		if len(byteA) == len(byteB) {
+			return 0
+		}
+		return -1
+	})
 	for _, v := range sortedVenvs {
-		if v.IsActive() {
+		ve := venv.Venv{Path: v}
+		if ve.IsActive() {
 			placeholder = "*"
 		} else {
 			placeholder = " "
 		}
-		str += fmt.Sprintf(" %s  %s\n", placeholder, filepath.Base(string(v)))
+		str += fmt.Sprintf(" %s  %s\n", placeholder, filepath.Base(ve.Path))
 	}
 	return str, nil
-
 }
