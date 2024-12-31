@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Location string
@@ -27,15 +28,23 @@ const (
 	HASHLEN = 64
 )
 
-type Venv string
+type Venv struct {
+	Path   string
+	Name   string
+	Python string
+}
+
+func (v Venv) String() string {
+	return v.Path
+}
 
 type Notary struct {
 	venvDir  string
-	venvList map[Venv]Location
+	venvList map[string]Location
 }
 
 func (v Venv) IsVenv() bool {
-	dir := string(v)
+	dir := v.Path
 	// check dir is created with correct files
 	stat, err := os.Stat(dir)
 	if err != nil {
@@ -64,7 +73,7 @@ func (v Venv) IsVenv() bool {
 }
 
 func (v Venv) Create() error {
-	_, err := os.Stat(string(v))
+	_, err := os.Stat(v.Path)
 
 	if err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
@@ -73,23 +82,16 @@ func (v Venv) Create() error {
 	} else {
 		return errors.New("Directory or file already exists with this name.")
 	}
-	cmd := exec.Command("python", "-m", "venv", string(v))
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	return err
-}
-
-func (v Venv) CreateWithName(name string) error {
-	_, err := os.Stat(string(v))
-
-	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return err
-		}
-	} else {
-		return errors.New("Directory or file already exists with this name.")
+	executable := v.Python
+	if executable == "" {
+		executable = "python"
 	}
-	cmd := exec.Command("python", "-m", "venv", "--prompt", name, string(v))
+	cmdEls := []string{executable, "-m", "venv"}
+	if v.Name != "" {
+		cmdEls = append(cmdEls, "--prompt", v.Name)
+	}
+	cmdEls = append(cmdEls, v.Path)
+	cmd := exec.Command(cmdEls[0], cmdEls[1:]...)
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 	return err
@@ -100,17 +102,17 @@ func (v Venv) Delete() error {
 		return errors.New("environment is active. Deactivate it before deleting it.")
 	}
 	if v.IsVenv() {
-		err := os.RemoveAll(string(v))
+		err := os.RemoveAll(v.Path)
 		return err
 	}
-	return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
+	return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
 }
 
 func (v Venv) Activate() error {
 	if !v.IsVenv() {
-		return errors.New(fmt.Sprintf("'%s' is not a python environment!", string(v)))
+		return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
 	}
-	activatePath := filepath.Join(string(v), "bin/activate")
+	activatePath := filepath.Join(v.Path, "bin/activate")
 	cmd := exec.Command("bash", "-c", "source "+activatePath+"; bash")
 	// cmd := exec.Command("bash")
 	cmd.Stdout = os.Stdout
@@ -122,10 +124,41 @@ func (v Venv) Activate() error {
 
 func (v Venv) IsActive() bool {
 	venv := os.Getenv("VIRTUAL_ENV")
-	if string(v) == venv {
+	if v.Path == venv {
 		return true
 	}
 	return false
+}
+
+func getMinorVersion(version string) string {
+	parts := strings.Split(version, ".")
+
+	if len(parts) != 3 {
+		return version
+	}
+
+	return strings.Join(parts[:2], ".")
+}
+
+func (v Venv) GetPythonVersion() (string, error) {
+	executable := v.Python
+	if executable == "" {
+		executable = "python"
+	}
+	cmd := exec.Command(executable, "-V")
+	version, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	versionEls := strings.Fields(string(version))
+	if len(versionEls) != 2 {
+		return "", fmt.Errorf("Something went wrong in fetching python version: '%s'", string(version))
+	}
+	if versionEls[0] != "Python" {
+		return "", errors.New("Executable is not Python binary.")
+	}
+	versionNo := getMinorVersion(versionEls[1])
+	return fmt.Sprintf("py%s", versionNo), nil
 }
 
 func NewNotary() (Notary, error) {
@@ -183,23 +216,24 @@ func (n *Notary) GetVenvs() error {
 	if err != nil {
 		return err
 	}
-	venvList := map[Venv]Location{}
+	venvList := map[string]Location{}
 
 	// add global venvs
 	for _, g := range globDirs {
-		v := Venv(filepath.Join(n.GlobalDir(), g.Name()))
+		// fullName := g.Name()
+		v := Venv{Path: filepath.Join(n.GlobalDir(), g.Name())}
 		if !v.IsVenv() {
 			continue
 		}
-		venvList[v] = GlobalLoc
+		venvList[v.Path] = GlobalLoc
 	}
 	// add local venvs
 	for _, g := range localDirs {
-		v := Venv(filepath.Join(n.LocalDir(), g.Name()))
+		v := Venv{Path: filepath.Join(n.LocalDir(), g.Name())}
 		if !v.IsVenv() {
 			continue
 		}
-		venvList[v] = LocalLoc
+		venvList[v.Path] = LocalLoc
 	}
 	n.venvList = venvList
 	return nil
@@ -218,6 +252,17 @@ func createLocalName() (string, error) {
 	return venvName, nil
 }
 
+func addVersion(venv Venv) (Venv, error) {
+	version, err := venv.GetPythonVersion()
+	if err != nil {
+		return venv, err
+	}
+	venv.Path = fmt.Sprintf("%s-%s", venv.Path, version)
+	venv.Name = fmt.Sprintf("%s-%s", venv.Name, version)
+
+	return venv, nil
+}
+
 func removeHash(name string) string {
 	hashLength := HASHLEN + 1
 	if len(name) > hashLength {
@@ -226,35 +271,54 @@ func removeHash(name string) string {
 	return name
 }
 
-func (n *Notary) CreateLocal() error {
+func extractVersion(name string) (string, string) {
+	separator := "-py"
+	parts := strings.Split(name, separator)
+	version := ""
+	length := len(parts)
+	if length == 1 {
+		return name, version
+	}
+	return strings.Join(parts[:length-1], separator), parts[length-1]
+}
+
+func (n *Notary) CreateLocal(python string) error {
 	venvName, err := createLocalName()
 	if err != nil {
 		return err
 	}
-	venv := Venv(filepath.Join(n.LocalDir(), venvName))
-	_, ok := n.venvList[venv]
+	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: removeHash(venvName), Python: python}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return err
+	}
+	_, ok := n.venvList[venv.Path]
 	if ok {
 		return errors.New("Environment already exists at this location.")
 	}
-	err = venv.CreateWithName(removeHash(venvName))
+	err = venv.Create()
 	if err != nil {
 		return err
 	}
-	n.venvList[venv] = LocalLoc
+	n.venvList[venv.Path] = LocalLoc
 	return nil
 }
 
-func (n *Notary) CreateGlobal(name string) error {
-	venv := Venv(filepath.Join(n.GlobalDir(), name))
-	_, ok := n.venvList[venv]
-	if ok {
-		return errors.New("Environment already exists with this name.")
-	}
-	err := venv.Create()
+func (n *Notary) CreateGlobal(name, python string) error {
+	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Python: python, Name: name}
+	venv, err := addVersion(venv)
 	if err != nil {
 		return err
 	}
-	n.venvList[venv] = GlobalLoc
+	_, ok := n.venvList[venv.Path]
+	if ok {
+		return errors.New("Environment already exists with this name.")
+	}
+	err = venv.Create()
+	if err != nil {
+		return err
+	}
+	n.venvList[venv.Path] = GlobalLoc
 	return nil
 }
 
@@ -263,17 +327,21 @@ func (n *Notary) delete(venv Venv) error {
 	if err != nil {
 		return err
 	}
-	delete(n.venvList, venv)
+	delete(n.venvList, venv.Path)
 	return nil
 }
 
-func (n *Notary) DeleteLocal() error {
+func (n *Notary) DeleteLocal(python string) error {
 	venvName, err := createLocalName()
 	if err != nil {
 		return err
 	}
-	venv := Venv(filepath.Join(n.LocalDir(), venvName))
-	_, ok := n.venvList[venv]
+	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: venvName, Python: python}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return err
+	}
+	_, ok := n.venvList[venv.Path]
 	if ok {
 		return n.delete(venv)
 	} else {
@@ -281,9 +349,13 @@ func (n *Notary) DeleteLocal() error {
 	}
 }
 
-func (n *Notary) DeleteGlobal(name string) error {
-	venv := Venv(filepath.Join(n.GlobalDir(), name))
-	_, ok := n.venvList[venv]
+func (n *Notary) DeleteGlobal(name, python string) error {
+	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Name: name, Python: python}
+	venv, err := addVersion(venv)
+	if err != nil {
+		return err
+	}
+	_, ok := n.venvList[venv.Path]
 	if ok {
 		return n.delete(venv)
 	} else {
@@ -291,8 +363,8 @@ func (n *Notary) DeleteGlobal(name string) error {
 	}
 }
 
-func (n Notary) ListGlobal() []Venv {
-	venvs := []Venv{}
+func (n Notary) ListGlobal() []string {
+	venvs := []string{}
 	for venv, loc := range n.venvList {
 		if loc == GlobalLoc {
 			venvs = append(venvs, venv)
@@ -301,8 +373,8 @@ func (n Notary) ListGlobal() []Venv {
 	return venvs
 }
 
-func (n Notary) ListLocal() []Venv {
-	venvs := []Venv{}
+func (n Notary) ListLocal() []string {
+	venvs := []string{}
 	for venv, loc := range n.venvList {
 		if loc == LocalLoc {
 			venvs = append(venvs, venv)
@@ -311,39 +383,50 @@ func (n Notary) ListLocal() []Venv {
 	return venvs
 }
 
-func (n Notary) GetGlobalVenv(name string) Venv {
-	venv := Venv(filepath.Join(n.GlobalDir(), name))
+func (n Notary) GetGlobalVenv(name, python string) (Venv, error) {
+	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Name: name, Python: python}
+	venv, err := addVersion(venv)
+	if err != nil {
+		return Venv{}, err
+	}
 
-	return venv
+	return venv, nil
 }
 
-func (n Notary) GetLocalVenv() (Venv, error) {
+func (n Notary) GetLocalVenv(python string) (Venv, error) {
 	venvName, err := createLocalName()
 	if err != nil {
-		return Venv(""), err
+		return Venv{}, err
 	}
-	venv := Venv(filepath.Join(n.LocalDir(), venvName))
+	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: venvName, Python: python}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return Venv{}, err
+	}
 
 	return venv, nil
 }
 
 func (n Notary) IsRegistered(venv Venv) bool {
-	_, ok := n.venvList[venv]
+	_, ok := n.venvList[venv.Path]
 
 	return ok
 }
 
-func (n Notary) ActivateGlobal(name string) error {
-	venv := n.GetGlobalVenv(name)
+func (n Notary) ActivateGlobal(name, python string) error {
+	venv, err := n.GetGlobalVenv(name, python)
+	if err != nil {
+		return err
+	}
 	if !n.IsRegistered(venv) {
 		return fmt.Errorf("No environment with name '%s' is registered.", name)
 	}
-	err := venv.Activate()
+	err = venv.Activate()
 	return err
 }
 
-func (n Notary) ActivateLocal() error {
-	venv, err := n.GetLocalVenv()
+func (n Notary) ActivateLocal(python string) error {
+	venv, err := n.GetLocalVenv(python)
 	if err != nil {
 		return err
 	}
@@ -359,10 +442,10 @@ func (n Notary) ActivateLocal() error {
 }
 
 func (n Notary) GetActiveEnv() (Venv, error) {
-	venv := Venv(os.Getenv("VIRTUAL_ENV"))
-	_, ok := n.venvList[venv]
+	venv := Venv{Path: os.Getenv("VIRTUAL_ENV")}
+	_, ok := n.venvList[venv.Path]
 	if ok {
 		return venv, nil
 	}
-	return "", errors.New("No active registered virtual environments.")
+	return Venv{}, errors.New("No active registered virtual environments.")
 }
