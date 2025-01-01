@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
+	venv "github.com/azr4e1/venv-notary"
 	"github.com/spf13/cobra"
 )
 
@@ -35,4 +37,17 @@ func init() {
 }
 
 func initConfig() {
+}
+
+func venvCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	notary, err := venv.NewNotary()
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	globalVenvs := []string{}
+	for _, v := range notary.ListGlobal() {
+		name, _ := venv.ExtractVersion(filepath.Base(v))
+		globalVenvs = append(globalVenvs, name)
+	}
+	return globalVenvs, cobra.ShellCompDirectiveNoFileComp
 }

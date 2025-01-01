@@ -9,10 +9,11 @@ import (
 
 var (
 	deleteCmd = &cobra.Command{
-		Use:   "delete",
-		Short: "Delete a local or global virtual environment",
-		RunE:  deleteCobraFunc,
-		Args:  cobra.MaximumNArgs(1),
+		Use:               "delete",
+		Short:             "Delete a local or global virtual environment",
+		RunE:              deleteCobraFunc,
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: venvCompletion,
 	}
 )
 

@@ -9,10 +9,11 @@ import (
 
 var (
 	activateCmd = &cobra.Command{
-		Use:   "activate",
-		Short: "Activate a local or global environment in a new shell",
-		Args:  cobra.MaximumNArgs(1),
-		RunE:  activateCobraFunction,
+		Use:               "activate",
+		Short:             "Activate a local or global environment in a new shell",
+		Args:              cobra.MaximumNArgs(1),
+		RunE:              activateCobraFunction,
+		ValidArgsFunction: venvCompletion,
 	}
 )
 

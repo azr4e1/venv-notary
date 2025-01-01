@@ -263,7 +263,7 @@ func addVersion(venv Venv) (Venv, error) {
 	return venv, nil
 }
 
-func removeHash(name string) string {
+func RemoveHash(name string) string {
 	hashLength := HASHLEN + 1
 	if len(name) > hashLength {
 		name = name[:len(name)-(HASHLEN+1)]
@@ -271,7 +271,7 @@ func removeHash(name string) string {
 	return name
 }
 
-func extractVersion(name string) (string, string) {
+func ExtractVersion(name string) (string, string) {
 	separator := "-py"
 	parts := strings.Split(name, separator)
 	version := ""
@@ -287,7 +287,7 @@ func (n *Notary) CreateLocal(python string) error {
 	if err != nil {
 		return err
 	}
-	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: removeHash(venvName), Python: python}
+	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: RemoveHash(venvName), Python: python}
 	venv, err = addVersion(venv)
 	if err != nil {
 		return err

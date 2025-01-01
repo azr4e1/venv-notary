@@ -9,10 +9,11 @@ import (
 
 var (
 	createCmd = &cobra.Command{
-		Use:   "create",
-		Short: "Create a local or global virtual environment",
-		RunE:  createCobraFunc,
-		Args:  cobra.MaximumNArgs(1),
+		Use:               "create",
+		Short:             "Create a local or global virtual environment",
+		RunE:              createCobraFunc,
+		Args:              cobra.MaximumNArgs(1),
+		ValidArgsFunction: venvCompletion,
 	}
 )
 
