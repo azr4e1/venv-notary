@@ -81,5 +81,5 @@ func ExtractVersion(name string) (string, string) {
 	if length == 1 {
 		return name, version
 	}
-	return strings.Join(parts[:length-1], separator), parts[length-1]
+	return strings.Join(parts[:length-1], separator), "py" + parts[length-1]
 }
