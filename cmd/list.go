@@ -22,14 +22,14 @@ var (
 func listCobraFunc(cmd *cobra.Command, args []string) error {
 	finalStr := ""
 	if !localVenv {
-		globalStr, err := printVenvs(false)
+		globalStr, err := printVenvs(false, pythonVersion)
 		if err != nil {
 			return err
 		}
 		finalStr += fmt.Sprintln(globalStr)
 	}
 	if !globalVenv {
-		localStr, err := printVenvs(true)
+		localStr, err := printVenvs(true, pythonVersion)
 		if err != nil {
 			return err
 		}
@@ -39,13 +39,7 @@ func listCobraFunc(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func init() {
-	listCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "list only global venvs.")
-	listCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "list only local venvs.")
-	listCmd.MarkFlagsMutuallyExclusive("global", "local")
-}
-
-func printVenvs(isLocal bool) (string, error) {
+func printVenvs(isLocal bool, python string) (string, error) {
 	notary, err := venv.NewNotary()
 	if err != nil {
 		return "", err
@@ -53,6 +47,13 @@ func printVenvs(isLocal bool) (string, error) {
 	var str string
 	var placeholder string
 	var sortedVenvs []string
+	var version string
+	if python != "" {
+		version, err = venv.PythonVersion(python)
+		if err != nil {
+			return "", err
+		}
+	}
 	if isLocal {
 		sortedVenvs = notary.ListLocal()
 		str = "Local Environments\n"
@@ -78,14 +79,25 @@ func printVenvs(isLocal bool) (string, error) {
 		}
 		return -1
 	})
-	for _, v := range sortedVenvs {
-		ve := venv.Venv{Path: v}
-		if ve.IsActive() {
+	for _, venvPath := range sortedVenvs {
+		v := venv.Venv{Path: venvPath}
+		_, venvVersion := venv.ExtractVersion(filepath.Base(venvPath))
+		if version != "" && version != venvVersion {
+			continue
+		}
+		if v.IsActive() {
 			placeholder = "*"
 		} else {
 			placeholder = " "
 		}
-		str += fmt.Sprintf(" %s  %s\n", placeholder, filepath.Base(ve.Path))
+		str += fmt.Sprintf(" %s  %s\n", placeholder, filepath.Base(v.Path))
 	}
 	return str, nil
+}
+
+func init() {
+	listCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "list only global venvs.")
+	listCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "list only local venvs.")
+	listCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "filter by python version.")
+	listCmd.MarkFlagsMutuallyExclusive("global", "local")
 }
