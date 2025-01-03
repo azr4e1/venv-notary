@@ -86,3 +86,24 @@ func ExtractVersion(name string) (string, string) {
 	}
 	return strings.Join(parts[:length-1], separator), "py" + parts[length-1]
 }
+
+func SafeDir(f func() error) error {
+	dir, err := os.MkdirTemp("", "*")
+	if err != nil {
+		return err
+	}
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	err = os.Chdir(dir)
+	if err != nil {
+		return err
+	}
+	err = f()
+	if err != nil {
+		return err
+	}
+	err = os.Chdir(currentDir)
+	return err
+}

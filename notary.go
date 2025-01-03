@@ -108,39 +108,49 @@ func (n *Notary) CreateLocal(python string) error {
 	if err != nil {
 		return err
 	}
-	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: RemoveHash(venvName), Python: python}
-	venv, err = addVersion(venv)
-	if err != nil {
-		return err
-	}
-	_, ok := n.venvList[venv.Path]
-	if ok {
-		return errors.New("Environment already exists at this location.")
-	}
-	err = venv.Create()
-	if err != nil {
-		return err
-	}
-	n.venvList[venv.Path] = LocalLoc
-	return nil
+	// change to empty dir so there is no clash with python script for venv
+	err = SafeDir(func() error {
+		venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: RemoveHash(venvName), Python: python}
+		venv, err = addVersion(venv)
+		if err != nil {
+			return err
+		}
+		_, ok := n.venvList[venv.Path]
+		if ok {
+			return errors.New("Environment already exists at this location.")
+		}
+		err = venv.Create()
+		if err != nil {
+			return err
+		}
+		n.venvList[venv.Path] = LocalLoc
+		return nil
+	})
+	return err
 }
 
 func (n *Notary) CreateGlobal(name, python string) error {
-	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Python: python, Name: name}
-	venv, err := addVersion(venv)
-	if err != nil {
-		return err
-	}
-	_, ok := n.venvList[venv.Path]
-	if ok {
-		return errors.New("Environment already exists with this name.")
-	}
-	err = venv.Create()
-	if err != nil {
-		return err
-	}
-	n.venvList[venv.Path] = GlobalLoc
-	return nil
+	// change to empty dir so there is no clash with python script for venv
+	var err error
+	err = SafeDir(func() error {
+		venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Python: python, Name: name}
+		venv, err = addVersion(venv)
+		if err != nil {
+			return err
+		}
+		_, ok := n.venvList[venv.Path]
+		if ok {
+			return errors.New("Environment already exists with this name.")
+		}
+		err = venv.Create()
+		if err != nil {
+			return err
+		}
+		n.venvList[venv.Path] = GlobalLoc
+		return nil
+
+	})
+	return err
 }
 
 func (n *Notary) delete(venv Venv) error {
