@@ -68,7 +68,6 @@ func (v Venv) Create() error {
 	}
 	cmdEls = append(cmdEls, v.Path)
 	cmd := exec.Command(cmdEls[0], cmdEls[1:]...)
-	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 	return err
 }
