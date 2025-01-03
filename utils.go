@@ -48,7 +48,10 @@ func createLocalName() (string, error) {
 	}
 	headDir := filepath.Base(currDir)
 	h := sha256.New()
-	h.Write([]byte(currDir))
+	_, err = h.Write([]byte(currDir))
+	if err != nil {
+		return "", err
+	}
 	venvName := fmt.Sprintf("%s-%x", headDir, h.Sum(nil))
 
 	return venvName, nil
