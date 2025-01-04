@@ -26,34 +26,30 @@ func activateCobraFunction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		venv, err := notary.GetLocalVenv(pythonVersion)
-		if err != nil {
-			return err
-		}
-		if !notary.IsRegistered(venv) {
-			err = notary.CreateLocal(pythonVersion)
-			if err != nil {
-				return err
-			}
-		}
 		err = notary.ActivateLocal(pythonVersion)
 		if err != nil {
+			if errors.As(err, &venv.VenvNotRegisteredError{}) {
+				err = notary.CreateLocal(pythonVersion)
+				if err != nil {
+					return err
+				}
+				err = notary.ActivateLocal(pythonVersion)
+				return err
+			}
 			return err
 		}
 	} else if len(args) > 0 {
 		name := args[0]
-		venv, err := notary.GetGlobalVenv(name, pythonVersion)
-		if err != nil {
-			return err
-		}
-		if !notary.IsRegistered(venv) {
-			err = notary.CreateGlobal(name, pythonVersion)
-			if err != nil {
-				return err
-			}
-		}
 		err = notary.ActivateGlobal(name, pythonVersion)
 		if err != nil {
+			if errors.As(err, &venv.VenvNotRegisteredError{}) {
+				err = notary.CreateGlobal(name, pythonVersion)
+				if err != nil {
+					return err
+				}
+				err = notary.ActivateGlobal(name, pythonVersion)
+				return err
+			}
 			return err
 		}
 	} else {
