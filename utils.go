@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -110,6 +111,7 @@ func SafeDir(f func() error) error {
 	err = os.Chdir(currentDir)
 	return err
 }
+
 func AlphanumericSort(a, b string) int {
 	byteA := []byte(a)
 	byteB := []byte(b)
@@ -127,4 +129,32 @@ func AlphanumericSort(a, b string) int {
 		return 0
 	}
 	return -1
+}
+
+func SemanticVersioningSort(a, b string) int {
+	partsA := strings.Split(a, ".")
+	partsB := strings.Split(b, ".")
+	for i, e := range partsA {
+		if i >= len(partsB) {
+			return -1
+		}
+		valA, err := strconv.Atoi(e)
+		if err != nil {
+			return -1
+		}
+		valB, err := strconv.Atoi(partsB[i])
+		if err != nil {
+			return 1
+		}
+		if valA > valB {
+			return 1
+		}
+		if valA < valB {
+			return -1
+		}
+	}
+	if len(partsA) == len(partsB) {
+		return 0
+	}
+	return 1
 }

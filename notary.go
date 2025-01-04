@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 type Notary struct {
@@ -216,10 +217,6 @@ func (n Notary) ListLocal() []string {
 
 func (n Notary) GetGlobalVenv(name, python string) (Venv, error) {
 	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Name: name, Python: python}
-	venv, err := addVersion(venv)
-	if err != nil {
-		return Venv{}, err
-	}
 
 	return venv, nil
 }
@@ -230,10 +227,6 @@ func (n Notary) GetLocalVenv(python string) (Venv, error) {
 		return Venv{}, err
 	}
 	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: venvName, Python: python}
-	venv, err = addVersion(venv)
-	if err != nil {
-		return Venv{}, err
-	}
 
 	return venv, nil
 }
@@ -244,13 +237,73 @@ func (n Notary) IsRegistered(venv Venv) bool {
 	return ok
 }
 
+func (n Notary) IsRegisteredNoVersion(venv Venv, isLocal bool) bool {
+	match, _ := ExtractVersion(venv.Path)
+	for v, l := range n.venvList {
+		if isLocal {
+			if l != LocalLoc {
+				continue
+			}
+		} else {
+			if l != GlobalLoc {
+				continue
+			}
+		}
+		name, _ := ExtractVersion(v)
+		if name == match {
+			return true
+		}
+	}
+	return false
+}
+
+func (n Notary) GetHighestVersionRegistered(venv Venv, isLocal bool) Venv {
+	registeredVersions := map[string]string{}
+	versionSlice := []string{}
+	match, _ := ExtractVersion(venv.Path)
+	for v, l := range n.venvList {
+		if isLocal {
+			if l != LocalLoc {
+				continue
+			}
+		} else {
+			if l != GlobalLoc {
+				continue
+			}
+		}
+		name, version := ExtractVersion(v)
+		if name == match {
+			// remove "py" in front of version
+			version = version[len(VersionPrefix):]
+			registeredVersions[version] = v
+			versionSlice = append(versionSlice, version)
+		}
+	}
+	if len(registeredVersions) == 0 {
+		return Venv{}
+	}
+	slices.SortFunc(versionSlice, SemanticVersioningSort)
+	highestVersion := versionSlice[len(versionSlice)-1]
+	venvPath := registeredVersions[highestVersion]
+	return Venv{Path: venvPath}
+}
+
 func (n Notary) ActivateGlobal(name, python string) error {
 	venv, err := n.GetGlobalVenv(name, python)
 	if err != nil {
 		return err
 	}
+	if python == "" && n.IsRegisteredNoVersion(venv, false) {
+		registeredVenv := n.GetHighestVersionRegistered(venv, false)
+		err = registeredVenv.Activate()
+		return err
+	}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return err
+	}
 	if !n.IsRegistered(venv) {
-		return fmt.Errorf("No environment with name '%s' is registered.", name)
+		return VenvNotRegisteredError{Message: fmt.Sprintf("No environment with name '%s' is registered with this Python version.", name)}
 	}
 	err = venv.Activate()
 	return err
@@ -261,8 +314,17 @@ func (n Notary) ActivateLocal(python string) error {
 	if err != nil {
 		return err
 	}
+	if python == "" && n.IsRegisteredNoVersion(venv, true) {
+		registeredVenv := n.GetHighestVersionRegistered(venv, true)
+		err = registeredVenv.Activate()
+		return err
+	}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return err
+	}
 	if !n.IsRegistered(venv) {
-		return errors.New("No environment is registered for current directory.")
+		return VenvNotRegisteredError{Message: "No environment is registered for current directory with this Python version."}
 	}
 
 	err = venv.Activate()
