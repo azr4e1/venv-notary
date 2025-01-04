@@ -21,9 +21,10 @@ const (
 )
 
 const (
-	DATAHOMEENV = "XDG_DATA_HOME"
-	DATAHOMEDIR = ".local/share"
-	NotaryDir   = "venv-notary"
+	DATAHOMEENV   = "XDG_DATA_HOME"
+	DATAHOMEDIR   = ".local/share"
+	NotaryDir     = "venv-notary"
+	VersionPrefix = "py"
 )
 
 func NewNotary() (Notary, error) {
@@ -118,7 +119,7 @@ func (n *Notary) CreateLocal(python string) error {
 		}
 		_, ok := n.venvList[venv.Path]
 		if ok {
-			return errors.New("Environment already exists at this location.")
+			return errors.New("Environment already exists at this location with this Python version.")
 		}
 		err = venv.Create()
 		if err != nil {
@@ -141,7 +142,7 @@ func (n *Notary) CreateGlobal(name, python string) error {
 		}
 		_, ok := n.venvList[venv.Path]
 		if ok {
-			return errors.New("Environment already exists with this name.")
+			return errors.New("Environment already exists with this name with this Python version.")
 		}
 		err = venv.Create()
 		if err != nil {
@@ -177,7 +178,7 @@ func (n *Notary) DeleteLocal(python string) error {
 	if ok {
 		return n.delete(venv)
 	} else {
-		return errors.New("No environment is registered for current directory.")
+		return errors.New("No environment is registered for current directory with this Python version.")
 	}
 }
 
@@ -191,7 +192,7 @@ func (n *Notary) DeleteGlobal(name, python string) error {
 	if ok {
 		return n.delete(venv)
 	} else {
-		return fmt.Errorf("No environment with name '%s' is registered.", name)
+		return fmt.Errorf("No environment with name '%s' is registered with this Python version.", name)
 	}
 }
 
