@@ -73,7 +73,7 @@ func printVenvs(isLocal bool, python string) (string, error) {
 		} else {
 			placeholder = " "
 		}
-		str += fmt.Sprintf(" %s  %s\n", placeholder, filepath.Base(v.Path))
+		str += fmt.Sprintf("  %s %s\n", placeholder, filepath.Base(v.Path))
 	}
 	return str, nil
 }
