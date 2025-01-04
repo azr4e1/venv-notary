@@ -281,6 +281,11 @@ func TestExtractVersion(t *testing.T) {
 			Answer1:  "",
 			Answer2:  "py4.2.5ciaocomeva",
 		},
+		{
+			Question: "ok-py4.3quea-py4.2.5",
+			Answer1:  "ok-py4.3quea",
+			Answer2:  "py4.2.5",
+		},
 	}
 	for i, tc := range testCases {
 
