@@ -61,24 +61,7 @@ func printVenvs(isLocal bool, python string) (string, error) {
 		sortedVenvs = notary.ListGlobal()
 		str = "Global Environments\n"
 	}
-	slices.SortFunc(sortedVenvs, func(a, b string) int {
-		byteA := []byte(a)
-		byteB := []byte(b)
-		var i int
-		var e byte
-		for i, e = range byteA {
-			if i >= len(byteB) || e > byteB[i] {
-				return 1
-			}
-			if e < byteB[i] {
-				return -1
-			}
-		}
-		if len(byteA) == len(byteB) {
-			return 0
-		}
-		return -1
-	})
+	slices.SortFunc(sortedVenvs, venv.AlphanumericSort)
 	for _, venvPath := range sortedVenvs {
 		v := venv.Venv{Path: venvPath}
 		_, venvVersion := venv.ExtractVersion(filepath.Base(venvPath))

@@ -110,3 +110,21 @@ func SafeDir(f func() error) error {
 	err = os.Chdir(currentDir)
 	return err
 }
+func AlphanumericSort(a, b string) int {
+	byteA := []byte(a)
+	byteB := []byte(b)
+	var i int
+	var e byte
+	for i, e = range byteA {
+		if i >= len(byteB) || e > byteB[i] {
+			return 1
+		}
+		if e < byteB[i] {
+			return -1
+		}
+	}
+	if len(byteA) == len(byteB) {
+		return 0
+	}
+	return -1
+}
