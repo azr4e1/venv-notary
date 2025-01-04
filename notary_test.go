@@ -252,3 +252,42 @@ func TestNewNotary_SetsUpDirCorrectly(t *testing.T) {
 		t.Error("local env dir has not been created")
 	}
 }
+
+func TestExtractVersion(t *testing.T) {
+	t.Parallel()
+	type testCase struct {
+		Question string
+		Answer1  string
+		Answer2  string
+	}
+	testCases := []testCase{
+		{
+			Question: "ciaocomeva-py3.1.43",
+			Answer1:  "ciaocomeva",
+			Answer2:  "py3.1.43",
+		},
+		{
+			Question: "-py3.1.43",
+			Answer1:  "",
+			Answer2:  "py3.1.43",
+		},
+		{
+			Question: "ciaocomeva",
+			Answer1:  "ciaocomeva",
+			Answer2:  "",
+		},
+		{
+			Question: "-py4.2.5ciaocomeva",
+			Answer1:  "",
+			Answer2:  "py4.2.5ciaocomeva",
+		},
+	}
+	for i, tc := range testCases {
+
+		noVersion, version := tc.Answer1, tc.Answer2
+		noVersionGot, versionGot := ExtractVersion(tc.Question)
+		if noVersion != noVersionGot || version != versionGot {
+			t.Errorf("for testcase %d: name: %s, name got: %s; version: %s, version got: %s", i, noVersion, noVersionGot, version, versionGot)
+		}
+	}
+}

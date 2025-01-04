@@ -79,10 +79,13 @@ func RemoveHash(name string) string {
 func ExtractVersion(name string) (string, string) {
 	separator := "-py"
 	parts := strings.Split(name, separator)
-	version := ""
 	length := len(parts)
 	if length == 1 {
-		return name, version
+		return name, ""
+	}
+	version := "py" + parts[length-1]
+	if name[len(name)-len(version):] != version {
+		return name, ""
 	}
 	return strings.Join(parts[:length-1], separator), "py" + parts[length-1]
 }
