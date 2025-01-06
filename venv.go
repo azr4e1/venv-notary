@@ -68,8 +68,11 @@ func (v Venv) Create() error {
 	}
 	cmdEls = append(cmdEls, v.Path)
 	cmd := exec.Command(cmdEls[0], cmdEls[1:]...)
-	err = cmd.Run()
-	return err
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%v. Error message: '%s'", err, output)
+	}
+	return nil
 }
 
 func (v Venv) Delete() error {
