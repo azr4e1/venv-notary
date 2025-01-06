@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Venv struct {
@@ -71,7 +72,7 @@ func (v Venv) Create() error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		os.RemoveAll(v.Path)
-		return fmt.Errorf("%v. Error message: '%s'", err, output)
+		return fmt.Errorf("%v. Error message: '%s'", strings.TrimSpace(err.Error()), strings.TrimSpace(string(output)))
 	}
 	return nil
 }
