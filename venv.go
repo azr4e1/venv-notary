@@ -70,6 +70,7 @@ func (v Venv) Create() error {
 	cmd := exec.Command(cmdEls[0], cmdEls[1:]...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		os.RemoveAll(v.Path)
 		return fmt.Errorf("%v. Error message: '%s'", err, output)
 	}
 	return nil
