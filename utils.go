@@ -15,6 +15,24 @@ const (
 	HASHLEN = 64
 )
 
+// allowed characters: a-z, 0-9, _, -
+func NormalizeName(name string) string {
+	name = strings.TrimSpace(strings.ToLower(name))
+	name = strings.Join(strings.Fields(name), "_")
+	normalizedName := ""
+	for _, r := range name {
+		switch {
+		case r >= 'a' && r <= 'z':
+			normalizedName += string(r)
+		case r >= '0' && r <= '9':
+			normalizedName += string(r)
+		case r == '_' || r == '-':
+			normalizedName += string(r)
+		}
+	}
+	return normalizedName
+}
+
 func getMinorVersion(version string) string {
 	parts := strings.Split(version, ".")
 
@@ -47,7 +65,10 @@ func createLocalName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	headDir := filepath.Base(currDir)
+	headDir := NormalizeName(filepath.Base(currDir))
+	if headDir == "" {
+		return "", errors.New("Invalid venv name. Please use a name that contains only letters, digits, '_' and '-'.")
+	}
 	h := sha256.New()
 	_, err = h.Write([]byte(currDir))
 	if err != nil {

@@ -132,6 +132,10 @@ func (n *Notary) CreateLocal(python string) error {
 }
 
 func (n *Notary) CreateGlobal(name, python string) error {
+	name = NormalizeName(name)
+	if name == "" {
+		return errors.New("Invalid venv name. Please use a name that contains only letters, digits, '_' and '-'.")
+	}
 	// change to empty dir so there is no clash with python script for venv
 	var err error
 	err = SafeDir(func() error {
@@ -217,6 +221,10 @@ func (n Notary) ListLocal() []string {
 }
 
 func (n Notary) GetGlobalVenv(name, python string) (Venv, error) {
+	name = NormalizeName(name)
+	if name == "" {
+		return Venv{}, errors.New("Invalid venv name. Please use a name that contains only letters, digits, '_' and '-'.")
+	}
 	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Name: name, Python: python}
 
 	return venv, nil

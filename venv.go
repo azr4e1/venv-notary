@@ -93,7 +93,7 @@ func (v Venv) Activate() error {
 		return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
 	}
 	activatePath := filepath.Join(v.Path, "bin/activate")
-	cmd := exec.Command("bash", "-c", "source "+activatePath+"; bash")
+	cmd := exec.Command("bash", "-c", "source '"+activatePath+"'; bash")
 	// cmd := exec.Command("bash")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
