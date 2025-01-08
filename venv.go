@@ -92,6 +92,9 @@ func (v Venv) Activate() error {
 	if !v.IsVenv() {
 		return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
 	}
+	if v.IsActive() {
+		return errors.New("environment is already active!")
+	}
 	activatePath := filepath.Join(v.Path, "bin/activate")
 	cmd := exec.Command("bash", "-c", "source '"+activatePath+"'; bash")
 	// cmd := exec.Command("bash")
