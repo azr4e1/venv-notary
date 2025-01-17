@@ -3,6 +3,7 @@ package graphics
 import (
 	vn "github.com/azr4e1/venv-notary"
 	tea "github.com/charmbracelet/bubbletea"
+	lg "github.com/charmbracelet/lipgloss"
 )
 
 type ListModel struct {
@@ -10,6 +11,8 @@ type ListModel struct {
 	showGlobal  bool
 	showLocal   bool
 	showVersion bool
+	itemStyle   lg.Style
+	boxStyle    lg.Style
 }
 
 func (lm ListModel) Init() tea.Cmd {
@@ -17,7 +20,13 @@ func (lm ListModel) Init() tea.Cmd {
 }
 
 func (lm ListModel) View() string {
-	return ""
+	global := ""
+	local := ""
+	var output string
+	if lm.showGlobal {
+		globalVenvs := lm.notary.ListGlobal()
+	}
+	return output
 }
 
 func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
