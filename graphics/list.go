@@ -77,9 +77,14 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 		return ListModel{}, err
 	}
 	lm := ListModel{
-		notary:     notary,
-		showGlobal: globalVenv,
-		showLocal:  localVenv,
+		notary:              notary,
+		showGlobal:          globalVenv,
+		showLocal:           localVenv,
+		environmentType:     globalHeader,
+		activeHeaderStyle:   activeHeaderStyle,
+		inactiveHeaderStyle: inactiveHeaderStyle,
+		itemStyle:           itemStyle,
+		currentItemStyle:    currentItemStyle,
 	}
 	return lm, nil
 }
