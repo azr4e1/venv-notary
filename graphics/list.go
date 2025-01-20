@@ -12,13 +12,16 @@ import (
 type cobraFunc func(*cobra.Command, []string) error
 
 type ListModel struct {
-	notary           vn.Notary
-	showGlobal       bool
-	showLocal        bool
-	showVersion      bool
-	itemStyle        lg.Style
-	currentItemStyle lg.Style
-	boxStyle         lg.Style
+	notary              vn.Notary
+	showGlobal          bool
+	showLocal           bool
+	showVersion         bool
+	itemStyle           lg.Style
+	currentItemStyle    lg.Style
+	boxStyle            lg.Style
+	activeHeaderStyle   lg.Style
+	inactiveHeaderStyle lg.Style
+	environmentType     headerType
 }
 
 func (lm ListModel) Init() tea.Cmd {
@@ -47,6 +50,22 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case msg.Type == tea.KeyCtrlC || msg.String() == "q":
 			return lm, tea.Quit
+		case msg.String() == "l":
+			lm.environmentType = localHeader
+		case msg.String() == "g":
+			lm.environmentType = globalHeader
+		case msg.Type == tea.KeyTab:
+			if lm.environmentType == localHeader {
+				lm.environmentType = globalHeader
+			} else {
+				lm.environmentType = localHeader
+			}
+		case msg.Type == tea.KeyShiftTab:
+			if lm.environmentType == localHeader {
+				lm.environmentType = globalHeader
+			} else {
+				lm.environmentType = localHeader
+			}
 		}
 	}
 	return lm, nil
