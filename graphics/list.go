@@ -1,7 +1,7 @@
 package graphics
 
 import (
-	"strings"
+	// "strings"
 
 	vn "github.com/azr4e1/venv-notary"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,18 +29,14 @@ func (lm ListModel) Init() tea.Cmd {
 }
 
 func (lm ListModel) View() string {
-	// global := ""
-	// local := ""
-	// var output string
-	// if lm.showGlobal {
-	// 	globalVenvs := lm.notary.ListGlobal()
-	// }
-	if lm.showGlobal {
-
+	header := createHeader(lm.showGlobal, lm.showLocal, lm.environmentType, lm.activeHeaderStyle, lm.inactiveHeaderStyle)
+	var body string
+	if lm.environmentType == globalHeader {
+		body = printGlobal(lm.notary, lm.itemStyle, lm.currentItemStyle)
+	} else {
+		body = printLocal(lm.notary, lm.itemStyle, lm.currentItemStyle)
 	}
-	localOutput := strings.Join(lm.notary.ListLocal(), "\n")
-	globalOutput := strings.Join(lm.notary.ListGlobal(), "\n")
-	output := lg.JoinHorizontal(lg.Center, globalOutput, localOutput)
+	output := lg.JoinVertical(lg.Left, header, body)
 	return output
 }
 
