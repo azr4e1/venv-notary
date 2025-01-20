@@ -12,16 +12,12 @@ import (
 type cobraFunc func(*cobra.Command, []string) error
 
 type ListModel struct {
-	notary              vn.Notary
-	showGlobal          bool
-	showLocal           bool
-	showVersion         bool
-	itemStyle           lg.Style
-	currentItemStyle    lg.Style
-	boxStyle            lg.Style
-	activeHeaderStyle   lg.Style
-	inactiveHeaderStyle lg.Style
-	environmentType     headerType
+	notary           vn.Notary
+	showGlobal       bool
+	showLocal        bool
+	showVersion      string
+	environmentType  headerType
+	itemStyle        lg.Style
 	currentItemStyle lg.Style
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
@@ -33,13 +29,9 @@ func (lm ListModel) Init() tea.Cmd {
 }
 
 func (lm ListModel) View() string {
-	header := createHeader(lm.showGlobal, lm.showLocal, lm.environmentType, lm.activeHeaderStyle, lm.inactiveHeaderStyle)
-	var body string
-	if lm.environmentType == globalHeader {
-		body = printGlobal(lm.notary, lm.itemStyle, lm.currentItemStyle)
-	} else {
-		body = printLocal(lm.notary, lm.itemStyle, lm.currentItemStyle)
-	}
+	body := createBody(lm.notary, lm.showGlobal, lm.showLocal, lm.environmentType, lm.itemStyle, lm.currentItemStyle)
+	width := lg.Width(body)
+	header := createHeader(lm.showGlobal, lm.showLocal, lm.environmentType, width, lm.activeTabStyle, lm.tabStyle)
 	output := lg.JoinVertical(lg.Left, header, body)
 	return output
 }

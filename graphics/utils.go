@@ -49,6 +49,23 @@ func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int
 	return "\n" + header
 }
 
+func createBody(notary vn.Notary, showGlobal, showLocal bool, environmentType headerType, itemStyle, currentItemStyle lg.Style) string {
+	if showGlobal && !showLocal {
+		return printGlobal(notary, itemStyle, currentItemStyle)
+	} else if !showGlobal && showLocal {
+		return printLocal(notary, itemStyle, currentItemStyle)
+	}
+
+	if environmentType == globalHeader {
+		return printGlobal(notary, itemStyle, currentItemStyle)
+	} else {
+		return printLocal(notary, itemStyle, currentItemStyle)
+	}
+
+	return ""
+
+}
+
 func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
 	items := make(map[string][]string)
 	names := make(map[string]string)
