@@ -85,9 +85,9 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 	return lm, nil
 }
 
-func ListMain(localVenv, globalVenv bool) cobraFunc {
+func ListMain(localVenv, globalVenv *bool) cobraFunc {
 	return func(cmd *cobra.Command, args []string) error {
-		m, err := newListModel(localVenv, globalVenv)
+		m, err := newListModel(*localVenv, *globalVenv)
 		if err != nil {
 			return err
 		}
