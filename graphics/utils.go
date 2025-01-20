@@ -21,15 +21,24 @@ const (
 	ReplaceVersion string = "py"
 )
 
+func fillLine(header string, width int, lineStyle lg.Style) string {
+	gap := lineStyle.Render(strings.Repeat(" ", max(0, width-lg.Width(header)-2)))
+	header = lg.JoinHorizontal(lg.Bottom, header, gap)
+	return "\n" + header
+}
+
 func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
 
 	localName := "Local Environments"
 	globalName := "Global Environments"
+	var header string
 	if showLocal && !showGlobal {
-		return activeStyle.Render(localName)
+		header = activeStyle.Render(localName)
+		return fillLine(header, width, inactiveStyle)
 	}
 	if showGlobal && !showLocal {
-		return activeStyle.Render(globalName)
+		header = activeStyle.Render(globalName)
+		return fillLine(header, width, inactiveStyle)
 	}
 	globalStyle := inactiveStyle
 	localStyle := inactiveStyle
@@ -39,14 +48,12 @@ func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int
 	if activeHeader == localHeader {
 		localStyle = activeStyle
 	}
-	header := lg.JoinHorizontal(
+	header = lg.JoinHorizontal(
 		lg.Top,
 		globalStyle.Render(globalName),
 		localStyle.Render(localName),
 	)
-	gap := inactiveStyle.Render(strings.Repeat(" ", max(0, width-lg.Width(header)-2)))
-	header = lg.JoinHorizontal(lg.Bottom, header, gap)
-	return "\n" + header
+	return fillLine(header, width, inactiveStyle)
 }
 
 func createBody(notary vn.Notary, showGlobal, showLocal bool, environmentType headerType, itemStyle, currentItemStyle lg.Style) string {
