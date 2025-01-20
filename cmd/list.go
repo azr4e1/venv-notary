@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	venv "github.com/azr4e1/venv-notary"
+	ui "github.com/azr4e1/venv-notary/graphics"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +16,7 @@ var (
 		Use:   "list",
 		Short: "List registered environments",
 		Args:  cobra.NoArgs,
-		RunE:  listCobraFunc,
+		RunE:  ui.ListMain(localVenv, globalVenv),
 	}
 )
 
