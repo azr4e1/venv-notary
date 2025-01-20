@@ -54,10 +54,10 @@ func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string 
 		oldVersions, ok := items[clnName]
 		if !ok {
 			oldVersions = []string{}
-			names[name] = clnName
 		}
 		oldVersions = append(oldVersions, version)
 		items[clnName] = oldVersions
+		names[name] = clnName
 	}
 
 	return prettyPrint(notary, names, items, itemStyle, currentItemStyle)
@@ -73,26 +73,28 @@ func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
 		oldVersions, ok := items[clnName]
 		if !ok {
 			oldVersions = []string{}
-			names[name] = clnName
 		}
 		oldVersions = append(oldVersions, version)
 		items[clnName] = oldVersions
+		names[name] = clnName
 	}
 
 	return prettyPrint(notary, names, items, itemStyle, currentItemStyle)
 }
 
 func prettyPrint(notary vn.Notary, nameMap map[string]string, items map[string][]string, itemStyle, currentItemStyle lg.Style) string {
-	names := []string{}
-	coloredNames := []string{}
 	activeVenv, _ := notary.GetActiveEnv()
 	activeName := nameMap[activeVenv.Path]
 	_, activeVersion := vn.ExtractVersion(activeVenv.Path)
 	activeVersion = strings.ReplaceAll(activeVersion, ReplaceVersion, "")
-	for _, n := range nameMap {
+
+	names := []string{}
+	for n := range items {
 		names = append(names, n)
 	}
 	slices.SortFunc(names, vn.AlphanumericSort)
+
+	coloredNames := []string{}
 	for _, n := range names {
 		el := itemStyle.Render(n)
 		if n == activeName {
