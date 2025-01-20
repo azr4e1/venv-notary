@@ -92,6 +92,13 @@ func prettyPrint(notary vn.Notary, nameMap map[string]string, items map[string][
 	for n := range items {
 		names = append(names, n)
 	}
+
+	nameBlock := prettyPrintEnv(names, activeName, itemStyle, currentItemStyle)
+	versionBlock := prettyPrintVersion(names, items, activeName, activeVersion, itemStyle, currentItemStyle)
+	return lg.JoinHorizontal(lg.Center, nameBlock, versionBlock)
+}
+
+func prettyPrintEnv(names []string, activeName string, itemStyle, currentItemStyle lg.Style) string {
 	slices.SortFunc(names, vn.AlphanumericSort)
 
 	coloredNames := []string{}
@@ -104,6 +111,10 @@ func prettyPrint(notary vn.Notary, nameMap map[string]string, items map[string][
 	}
 	nameBlock := lg.NewStyle().PaddingRight(1).Render(strings.Join(coloredNames, "\n"))
 
+	return nameBlock
+}
+
+func prettyPrintVersion(names []string, items map[string][]string, activeName, activeVersion string, itemStyle, currentItemStyle lg.Style) string {
 	versionBlockElements := []string{}
 	for _, name := range names {
 		versions := items[name]
@@ -119,5 +130,6 @@ func prettyPrint(notary vn.Notary, nameMap map[string]string, items map[string][
 		versionBlockElements = append(versionBlockElements, "("+strings.Join(coloredVersions, " ")+")")
 	}
 	versionBlock := lg.NewStyle().PaddingLeft(1).Render(strings.Join(versionBlockElements, "\n"))
-	return lg.JoinHorizontal(lg.Center, nameBlock, versionBlock)
+
+	return versionBlock
 }
