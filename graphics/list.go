@@ -22,6 +22,10 @@ type ListModel struct {
 	activeHeaderStyle   lg.Style
 	inactiveHeaderStyle lg.Style
 	environmentType     headerType
+	currentItemStyle lg.Style
+	activeTabStyle   lg.Style
+	tabStyle         lg.Style
+	tabGap           lg.Style
 }
 
 func (lm ListModel) Init() tea.Cmd {
@@ -73,14 +77,14 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 		return ListModel{}, err
 	}
 	lm := ListModel{
-		notary:              notary,
-		showGlobal:          globalVenv,
-		showLocal:           localVenv,
-		environmentType:     globalHeader,
-		activeHeaderStyle:   activeHeaderStyle,
-		inactiveHeaderStyle: inactiveHeaderStyle,
-		itemStyle:           itemStyle,
-		currentItemStyle:    currentItemStyle,
+		notary:           notary,
+		showGlobal:       globalVenv,
+		showLocal:        localVenv,
+		environmentType:  globalHeader,
+		activeTabStyle:   activeTab,
+		tabStyle:         tab,
+		itemStyle:        itemStyle,
+		currentItemStyle: currentItemStyle,
 	}
 	return lm, nil
 }

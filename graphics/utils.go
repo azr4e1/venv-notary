@@ -21,7 +21,8 @@ const (
 	ReplaceVersion string = "py"
 )
 
-func createHeader(showGlobal, showLocal bool, activeHeader headerType, activeStyle, inactiveStyle lg.Style) string {
+func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
+
 	localName := "Local Environments"
 	globalName := "Global Environments"
 	if showLocal && !showGlobal {
@@ -38,11 +39,14 @@ func createHeader(showGlobal, showLocal bool, activeHeader headerType, activeSty
 	if activeHeader == localHeader {
 		localStyle = activeStyle
 	}
-	header := strings.Join([]string{
+	header := lg.JoinHorizontal(
+		lg.Top,
 		globalStyle.Render(globalName),
 		localStyle.Render(localName),
-	}, " | ")
-	return header
+	)
+	gap := inactiveStyle.Render(strings.Repeat(" ", max(0, width-lg.Width(header)-2)))
+	header = lg.JoinHorizontal(lg.Bottom, header, gap)
+	return "\n" + header
 }
 
 func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
@@ -60,7 +64,7 @@ func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string 
 		names[name] = clnName
 	}
 
-	return prettyPrint(notary, names, items, itemStyle, currentItemStyle)
+	return prettyPrintList(notary, names, items, itemStyle, currentItemStyle)
 }
 
 func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
@@ -79,10 +83,10 @@ func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
 		names[name] = clnName
 	}
 
-	return prettyPrint(notary, names, items, itemStyle, currentItemStyle)
+	return prettyPrintList(notary, names, items, itemStyle, currentItemStyle)
 }
 
-func prettyPrint(notary vn.Notary, nameMap map[string]string, items map[string][]string, itemStyle, currentItemStyle lg.Style) string {
+func prettyPrintList(notary vn.Notary, nameMap map[string]string, items map[string][]string, itemStyle, currentItemStyle lg.Style) string {
 	activeVenv, _ := notary.GetActiveEnv()
 	activeName := nameMap[activeVenv.Path]
 	_, activeVersion := vn.ExtractVersion(activeVenv.Path)
@@ -109,7 +113,7 @@ func prettyPrintEnv(names []string, activeName string, itemStyle, currentItemSty
 		}
 		coloredNames = append(coloredNames, el)
 	}
-	nameBlock := lg.NewStyle().PaddingRight(1).Render(strings.Join(coloredNames, "\n"))
+	nameBlock := venvBlockStyle.Render(strings.Join(coloredNames, "\n"))
 
 	return nameBlock
 }
@@ -129,7 +133,7 @@ func prettyPrintVersion(names []string, items map[string][]string, activeName, a
 		}
 		versionBlockElements = append(versionBlockElements, "("+strings.Join(coloredVersions, " ")+")")
 	}
-	versionBlock := lg.NewStyle().PaddingLeft(1).Render(strings.Join(versionBlockElements, "\n"))
+	versionBlock := versionBlockStyle.Render(strings.Join(versionBlockElements, "\n"))
 
 	return versionBlock
 }
