@@ -79,21 +79,21 @@ func (lm *ListModel) Refresh() {
 	if err != nil {
 		return
 	}
-	localContent := createBody(lm.notary, true, true, localHeader, lm.itemStyle, lm.currentItemStyle)
-	globalContent := createBody(lm.notary, true, true, globalHeader, lm.itemStyle, lm.currentItemStyle)
+	localContent := printLocal(lm.notary, lm.itemStyle, lm.currentItemStyle)
+	globalContent := printGlobal(lm.notary, lm.itemStyle, lm.currentItemStyle)
 	localWidth := lg.Width(localContent)
 	globalWidth := lg.Width(globalContent)
-	localHead := createHeader(true, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
-	globalHead := createHeader(true, true, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
-	localOnlyHead := createHeader(false, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
-	globalOnlyHead := createHeader(true, false, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+	localActiveHeader := createActiveHeader(localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
+	globalActiveHeader := createActiveHeader(globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+	localOnlyHeader := createLocalHeader(localWidth, lm.activeTabStyle, lm.tabStyle)
+	globalOnlyHeader := createGlobalHeader(globalWidth, lm.activeTabStyle, lm.tabStyle)
 
-	lm.localHeader = localHead
+	lm.localHeader = localActiveHeader
 	lm.localContent = localContent
-	lm.globalHeader = globalHead
+	lm.globalHeader = globalActiveHeader
 	lm.globalContent = globalContent
-	lm.localOnlyHeader = localOnlyHead
-	lm.globalOnlyHeader = globalOnlyHead
+	lm.localOnlyHeader = localOnlyHeader
+	lm.globalOnlyHeader = globalOnlyHeader
 }
 
 func (lm ListModel) HeaderContent() (string, string) {

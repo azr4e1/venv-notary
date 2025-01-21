@@ -18,6 +18,11 @@ const (
 )
 
 const (
+	LocalName  = "Local Environments"
+	GlobalName = "Global Environments"
+)
+
+const (
 	ReplaceVersion string = "py"
 )
 
@@ -27,19 +32,17 @@ func fillLine(header string, width int, lineStyle lg.Style) string {
 	return header
 }
 
-func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
+func createLocalHeader(width int, activeStyle, inactiveStyle lg.Style) string {
+	header := activeStyle.Render(LocalName)
+	return fillLine(header, width, inactiveStyle)
+}
 
-	localName := "Local Environments"
-	globalName := "Global Environments"
-	var header string
-	if showLocal && !showGlobal {
-		header = activeStyle.Render(localName)
-		return fillLine(header, width, inactiveStyle)
-	}
-	if showGlobal && !showLocal {
-		header = activeStyle.Render(globalName)
-		return fillLine(header, width, inactiveStyle)
-	}
+func createGlobalHeader(width int, activeStyle, inactiveStyle lg.Style) string {
+	header := activeStyle.Render(GlobalName)
+	return fillLine(header, width, inactiveStyle)
+}
+
+func createActiveHeader(activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
 	globalStyle := inactiveStyle
 	localStyle := inactiveStyle
 	if activeHeader == globalHeader {
@@ -48,26 +51,12 @@ func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int
 	if activeHeader == localHeader {
 		localStyle = activeStyle
 	}
-	header = lg.JoinHorizontal(
+	header := lg.JoinHorizontal(
 		lg.Top,
-		globalStyle.Render(globalName),
-		localStyle.Render(localName),
+		globalStyle.Render(GlobalName),
+		localStyle.Render(LocalName),
 	)
 	return fillLine(header, width, inactiveStyle)
-}
-
-func createBody(notary vn.Notary, showGlobal, showLocal bool, environmentType headerType, itemStyle, currentItemStyle lg.Style) string {
-	if showGlobal && !showLocal {
-		return printGlobal(notary, itemStyle, currentItemStyle)
-	} else if !showGlobal && showLocal {
-		return printLocal(notary, itemStyle, currentItemStyle)
-	}
-
-	if environmentType == globalHeader {
-		return printGlobal(notary, itemStyle, currentItemStyle)
-	} else {
-		return printLocal(notary, itemStyle, currentItemStyle)
-	}
 }
 
 func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
