@@ -77,9 +77,7 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			lm.local()
 		case msg.String() == "g":
 			lm.global()
-		case msg.Type == tea.KeyTab:
-			lm.switchContent()
-		case msg.Type == tea.KeyShiftTab:
+		case msg.Type == tea.KeyTab || msg.Type == tea.KeyShiftTab || msg.Type == tea.KeyRight || msg.Type == tea.KeyLeft:
 			lm.switchContent()
 		case msg.String() == "r":
 			lm.refresh()
@@ -93,24 +91,12 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		lm.windowWidth = msg.Width
 
 		if !lm.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
 			lm.viewport = viewport.New(min(msg.Width, MaxWidth), min(windowHeight, MaxHeight, contentHeight))
 			lm.viewport.YPosition = headerHeight + 2
 			lm.viewport.SetContent(content)
 			lm.ready = true
-
-			// This is only necessary for high performance rendering, which in
-			// most cases you won't need.
-			//
-			// Render the viewport one line below the header.
-			lm.viewport.YPosition = headerHeight + 1
 		} else {
-			lm.viewport.Width = min(msg.Width, MaxWidth)
-			lm.viewport.Height = min(windowHeight, MaxHeight, contentHeight)
+			lm.ResetViewport()
 		}
 	}
 	lm.viewport, cmd = lm.viewport.Update(msg)
