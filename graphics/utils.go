@@ -24,7 +24,7 @@ const (
 func fillLine(header string, width int, lineStyle lg.Style) string {
 	gap := lineStyle.Render(strings.Repeat(" ", max(0, width-lg.Width(header)-2)))
 	header = lg.JoinHorizontal(lg.Bottom, header, gap)
-	return "\n" + header
+	return header
 }
 
 func createHeader(showGlobal, showLocal bool, activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
@@ -68,9 +68,6 @@ func createBody(notary vn.Notary, showGlobal, showLocal bool, environmentType he
 	} else {
 		return printLocal(notary, itemStyle, currentItemStyle)
 	}
-
-	return ""
-
 }
 
 func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {

@@ -3,7 +3,11 @@ package graphics
 import (
 	// "strings"
 
+	"fmt"
+	"io"
+
 	vn "github.com/azr4e1/venv-notary"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -22,6 +26,7 @@ type ListModel struct {
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
 	tabGap           lg.Style
+	viewport         viewport.Model
 }
 
 func (lm ListModel) Init() tea.Cmd {
@@ -33,7 +38,7 @@ func (lm ListModel) View() string {
 	width := lg.Width(body)
 	header := createHeader(lm.showGlobal, lm.showLocal, lm.environmentType, width, lm.activeTabStyle, lm.tabStyle)
 	output := lg.JoinVertical(lg.Left, header, body)
-	return output
+	return lg.NewStyle().Padding(1, 0).Render(output)
 }
 
 func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -81,11 +86,15 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 	return lm, nil
 }
 
-func ListMain(localVenv, globalVenv *bool) cobraFunc {
+func ListMain(localVenv, globalVenv *bool, stdout io.Writer) cobraFunc {
 	return func(cmd *cobra.Command, args []string) error {
 		m, err := newListModel(*localVenv, *globalVenv)
 		if err != nil {
 			return err
+		}
+		if *localVenv != *globalVenv {
+			fmt.Fprintln(stdout, m.View())
+			return nil
 		}
 		p := tea.NewProgram(m)
 		_, err = p.Run()

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -16,7 +17,7 @@ var (
 		Use:   "list",
 		Short: "List registered environments",
 		Args:  cobra.NoArgs,
-		RunE:  ui.ListMain(&localVenv, &globalVenv),
+		RunE:  ui.ListMain(&localVenv, &globalVenv, os.Stdout),
 	}
 )
 
