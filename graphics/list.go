@@ -90,14 +90,14 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		headerHeight := lg.Height(lm.headerView())
-		content := lm.contentView()
-		contentHeight := lg.Height(content)
 		windowHeight := msg.Height - headerHeight - 2
 		lm.windowHeight = windowHeight
 		lm.windowWidth = msg.Width
 
 		if !lm.ready {
 			lm.Refresh()
+			content := lm.contentView()
+			contentHeight := lg.Height(content)
 			lm.viewport = viewport.New(min(msg.Width, lm.MaxWidth), min(windowHeight, lm.MaxHeight, contentHeight))
 			lm.viewport.YPosition = headerHeight + 2
 			lm.viewport.SetContent(content)
