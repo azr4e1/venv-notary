@@ -15,7 +15,7 @@ import (
 
 const (
 	MaxHeight = 130
-	MaxWidth  = 96
+	MaxWidth  = 120
 )
 
 type cobraFunc func(*cobra.Command, []string) error
@@ -97,11 +97,13 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		lm.windowWidth = msg.Width
 
 		if !lm.ready {
+			lm.Refresh()
 			lm.viewport = viewport.New(min(msg.Width, lm.MaxWidth), min(windowHeight, lm.MaxHeight, contentHeight))
 			lm.viewport.YPosition = headerHeight + 2
 			lm.viewport.SetContent(content)
 			lm.ready = true
 		} else {
+			lm.Refresh()
 			lm.resetViewport()
 		}
 	}
@@ -146,8 +148,9 @@ func (lm *ListModel) Refresh() {
 	if err != nil {
 		return
 	}
-	localContent := printLocal(lm.notary, lm.itemStyle, lm.currentItemStyle)
-	globalContent := printGlobal(lm.notary, lm.itemStyle, lm.currentItemStyle)
+	width := min(lm.windowWidth, lm.MaxWidth) - 4 // account for padding
+	localContent := printLocal(lm.notary, width, lm.itemStyle, lm.currentItemStyle)
+	globalContent := printGlobal(lm.notary, width, lm.itemStyle, lm.currentItemStyle)
 	localWidth := lg.Width(localContent)
 	globalWidth := lg.Width(globalContent)
 	localActiveHeader := createActiveHeader(localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
@@ -161,12 +164,6 @@ func (lm *ListModel) Refresh() {
 	lm.globalContent = globalContent
 	lm.localOnlyHeader = localOnlyHeader
 	lm.globalOnlyHeader = globalOnlyHeader
-
-	if lm.environmentType == globalHeader {
-		lm.Global()
-	} else {
-		lm.Local()
-	}
 }
 
 func (lm ListModel) headerView() string {

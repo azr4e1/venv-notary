@@ -19,12 +19,11 @@ const (
 )
 
 const (
-	LocalName  = "Local Environments"
-	GlobalName = "Global Environments"
-)
-
-const (
+	LocalName             = "Local Environments"
+	GlobalName            = "Global Environments"
 	ReplaceVersion string = "py"
+	truncateRatio         = 0.5
+	truncateChar          = "…"
 )
 
 func fillLine(header string, width int, lineStyle lg.Style) string {
@@ -60,7 +59,7 @@ func createActiveHeader(activeHeader headerType, width int, activeStyle, inactiv
 	return fillLine(header, width, inactiveStyle)
 }
 
-func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
+func printGlobal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Style) string {
 	items := make(map[string][]string)
 	names := make(map[string]string)
 	for _, name := range notary.ListGlobal() {
@@ -75,10 +74,10 @@ func printGlobal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string 
 		names[name] = clnName
 	}
 
-	return prettyPrintList(notary, names, items, itemStyle, currentItemStyle)
+	return prettyPrintList(notary, width, names, items, itemStyle, currentItemStyle)
 }
 
-func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
+func printLocal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Style) string {
 	items := make(map[string][]string)
 	names := make(map[string]string)
 	for _, name := range notary.ListLocal() {
@@ -97,10 +96,10 @@ func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
 		names[name] = clnName
 	}
 
-	return prettyPrintList(notary, names, items, itemStyle, currentItemStyle)
+	return prettyPrintList(notary, width, names, items, itemStyle, currentItemStyle)
 }
 
-func prettyPrintList(notary vn.Notary, nameMap map[string]string, items map[string][]string, itemStyle, currentItemStyle lg.Style) string {
+func prettyPrintList(notary vn.Notary, width int, nameMap map[string]string, items map[string][]string, itemStyle, currentItemStyle lg.Style) string {
 	activeVenv, _ := notary.GetActiveEnv()
 	activeName := nameMap[activeVenv.Path]
 	_, activeVersion := vn.ExtractVersion(activeVenv.Path)
@@ -111,16 +110,22 @@ func prettyPrintList(notary vn.Notary, nameMap map[string]string, items map[stri
 		names = append(names, n)
 	}
 
-	nameBlock := prettyPrintEnv(names, activeName, itemStyle, currentItemStyle)
-	versionBlock := prettyPrintVersion(names, items, activeName, activeVersion, itemStyle, currentItemStyle)
+	nameWidth := int(truncateRatio * float64(width))
+	versionWidth := width - nameWidth
+	nameBlock := prettyPrintEnv(names, nameWidth, activeName, itemStyle, currentItemStyle)
+	versionBlock := prettyPrintVersion(names, versionWidth, items, activeName, activeVersion, itemStyle, currentItemStyle)
 	return lg.JoinHorizontal(lg.Center, nameBlock, versionBlock)
 }
 
-func prettyPrintEnv(names []string, activeName string, itemStyle, currentItemStyle lg.Style) string {
+func prettyPrintEnv(names []string, width int, activeName string, itemStyle, currentItemStyle lg.Style) string {
 	slices.SortFunc(names, vn.AlphanumericSort)
 
 	coloredNames := []string{}
 	for _, n := range names {
+		// check if needs to be truncated
+		if len(n) > width && width > 0 {
+			n = n[:width-1] + truncateChar
+		}
 		el := itemStyle.Render(n)
 		if n == activeName {
 			el = currentItemStyle.Render(n)
@@ -132,7 +137,7 @@ func prettyPrintEnv(names []string, activeName string, itemStyle, currentItemSty
 	return nameBlock
 }
 
-func prettyPrintVersion(names []string, items map[string][]string, activeName, activeVersion string, itemStyle, currentItemStyle lg.Style) string {
+func prettyPrintVersion(names []string, width int, items map[string][]string, activeName, activeVersion string, itemStyle, currentItemStyle lg.Style) string {
 	versionBlockElements := []string{}
 	for _, name := range names {
 		versions := items[name]
@@ -145,9 +150,15 @@ func prettyPrintVersion(names []string, items map[string][]string, activeName, a
 			}
 			coloredVersions = append(coloredVersions, el)
 		}
-		versionBlockElements = append(versionBlockElements, "("+strings.Join(coloredVersions, " ")+")")
+		// check if needs to be truncated
+		versionElement := "(" + strings.Join(coloredVersions, " ") + ")"
+		for i := 0; lg.Width(versionElement) > width && width > 0 && i < len(coloredVersions); i++ {
+			versionElement = "(" + strings.Join(coloredVersions[:len(coloredVersions)-i-1], " ") + truncateChar + ")"
+		}
+
+		versionBlockElements = append(versionBlockElements, versionElement)
 	}
-	versionBlock := versionBlockStyle.Render(strings.Join(versionBlockElements, "\n"))
+	versionBlock := versionBlockStyle.Align(lg.Right).Render(strings.Join(versionBlockElements, "\n"))
 
 	return versionBlock
 }
