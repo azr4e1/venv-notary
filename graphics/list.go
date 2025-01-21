@@ -29,7 +29,6 @@ type ListModel struct {
 	windowWidth     int
 	windowHeight    int
 	ready           bool
-	errorMessage    string
 
 	MaxHeight int
 	MaxWidth  int
@@ -39,7 +38,6 @@ type ListModel struct {
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
 	tabGap           lg.Style
-	errorStyle       lg.Style
 
 	viewport viewport.Model
 
@@ -67,13 +65,6 @@ func (lm ListModel) View() string {
 		content = lm.contentView()
 	}
 	output := lg.JoinVertical(lg.Left, header, content)
-	if errorMessage := lm.errorMessage; errorMessage != "" {
-		width := min(lm.windowWidth, lm.MaxWidth) - 4 // account for padding
-		if len(errorMessage) > width && width > 0 {
-			errorMessage = errorMessage[:width-1] + truncateChar
-		}
-		output = lg.JoinVertical(lg.Left, output, lm.errorStyle.Render(errorMessage))
-	}
 	output = lg.NewStyle().Padding(1, 0).Render(output)
 	return output
 }
@@ -219,12 +210,12 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 		environmentType = localHeader
 	}
 
-	var pythonVersion, errorMessage string
+	var pythonVersion string
 	if pythonExec != "" {
 		pythonVersion, err = vn.PythonVersion(pythonExec)
-	}
-	if err != nil {
-		errorMessage = err.Error()
+		if err != nil {
+			return ListModel{}, err
+		}
 	}
 	lm := ListModel{
 		notary:           notary,
@@ -235,11 +226,9 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 		activeTabStyle:   activeTab,
 		tabStyle:         tab,
 		itemStyle:        itemStyle,
-		errorStyle:       errorStyle,
 		currentItemStyle: currentItemStyle,
 		MaxHeight:        MaxHeight,
 		MaxWidth:         MaxWidth,
-		errorMessage:     errorMessage,
 	}
 	lm.Refresh()
 	return lm, nil
