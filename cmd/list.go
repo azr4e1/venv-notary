@@ -17,7 +17,7 @@ var (
 		Use:   "list",
 		Short: "List registered environments",
 		Args:  cobra.NoArgs,
-		RunE:  ui.ListMain(&localVenv, &globalVenv, os.Stdout),
+		RunE:  ui.ListMain(&localVenv, &globalVenv, &pythonVersion, os.Stdout),
 	}
 )
 

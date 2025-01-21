@@ -24,7 +24,7 @@ type ListModel struct {
 	notary          vn.Notary
 	showGlobal      bool
 	showLocal       bool
-	showVersion     string
+	pythonVersion   string
 	environmentType headerType
 	windowWidth     int
 	windowHeight    int
@@ -149,8 +149,8 @@ func (lm *ListModel) Refresh() {
 		return
 	}
 	width := min(lm.windowWidth, lm.MaxWidth) - 4 // account for padding
-	localContent := printLocal(lm.notary, width, lm.itemStyle, lm.currentItemStyle)
-	globalContent := printGlobal(lm.notary, width, lm.itemStyle, lm.currentItemStyle)
+	localContent := printLocal(lm.notary, width, lm.pythonVersion, lm.itemStyle, lm.currentItemStyle)
+	globalContent := printGlobal(lm.notary, width, lm.pythonVersion, lm.itemStyle, lm.currentItemStyle)
 	localWidth := lg.Width(localContent)
 	globalWidth := lg.Width(globalContent)
 	localActiveHeader := createActiveHeader(localHeader, localWidth, width, lm.activeTabStyle, lm.tabStyle)
@@ -200,7 +200,7 @@ func (lm ListModel) contentView() string {
 	return content
 }
 
-func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
+func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, error) {
 	notary, err := vn.NewNotary()
 	if err != nil {
 		return ListModel{}, err
@@ -209,10 +209,12 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 	if localVenv && !globalVenv {
 		environmentType = localHeader
 	}
+	pythonVersion, _ := vn.PythonVersion(pythonExec)
 	lm := ListModel{
 		notary:           notary,
 		showGlobal:       globalVenv,
 		showLocal:        localVenv,
+		pythonVersion:    pythonVersion,
 		environmentType:  environmentType,
 		activeTabStyle:   activeTab,
 		tabStyle:         tab,
@@ -225,9 +227,9 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 	return lm, nil
 }
 
-func ListMain(localVenv, globalVenv *bool, stdout io.Writer) cobraFunc {
+func ListMain(localVenv, globalVenv *bool, pythonExec *string, stdout io.Writer) cobraFunc {
 	return func(cmd *cobra.Command, args []string) error {
-		m, err := newListModel(*localVenv, *globalVenv)
+		m, err := newListModel(*localVenv, *globalVenv, *pythonExec)
 		if err != nil {
 			return err
 		}

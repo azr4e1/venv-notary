@@ -66,11 +66,14 @@ func createActiveHeader(activeHeader headerType, contentWidth, rowWidth int, act
 	return fillLine(header, contentWidth, inactiveStyle)
 }
 
-func printGlobal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Style) string {
+func printGlobal(notary vn.Notary, width int, pythonVersion string, itemStyle, currentItemStyle lg.Style) string {
 	items := make(map[string][]string)
 	names := make(map[string]string)
 	for _, name := range notary.ListGlobal() {
 		clnName, version := vn.ExtractVersion(filepath.Base(name))
+		if pythonVersion != "" && pythonVersion != version {
+			continue
+		}
 		version = strings.ReplaceAll(version, ReplaceVersion, "")
 		oldVersions, ok := items[clnName]
 		if !ok {
@@ -84,11 +87,14 @@ func printGlobal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Sty
 	return prettyPrintList(notary, width, names, items, itemStyle, currentItemStyle)
 }
 
-func printLocal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Style) string {
+func printLocal(notary vn.Notary, width int, pythonVersion string, itemStyle, currentItemStyle lg.Style) string {
 	items := make(map[string][]string)
 	names := make(map[string]string)
 	for _, name := range notary.ListLocal() {
 		clnName, version := vn.ExtractVersion(filepath.Base(name))
+		if pythonVersion != "" && pythonVersion != version {
+			continue
+		}
 		version = strings.ReplaceAll(version, ReplaceVersion, "")
 		clnNameWithHash := clnName
 		clnName = vn.RemoveHash(clnName)
