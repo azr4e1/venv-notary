@@ -29,6 +29,8 @@ type ListModel struct {
 	viewport         viewport.Model
 	localHeader      string
 	globalHeader     string
+	localOnlyHeader  string
+	globalOnlyHeader string
 	localContent     string
 	globalContent    string
 }
@@ -38,10 +40,8 @@ func (lm ListModel) Init() tea.Cmd {
 }
 
 func (lm ListModel) View() string {
-	body := createBody(lm.notary, lm.showGlobal, lm.showLocal, lm.environmentType, lm.itemStyle, lm.currentItemStyle)
-	width := lg.Width(body)
-	header := createHeader(lm.showGlobal, lm.showLocal, lm.environmentType, width, lm.activeTabStyle, lm.tabStyle)
-	output := lg.JoinVertical(lg.Left, header, body)
+	header, content := lm.HeaderContent()
+	output := lg.JoinVertical(lg.Left, header, content)
 	return lg.NewStyle().Padding(1, 0).Render(output)
 }
 
@@ -83,17 +83,27 @@ func (lm *ListModel) Refresh() {
 	globalContent := createBody(lm.notary, true, true, globalHeader, lm.itemStyle, lm.currentItemStyle)
 	localWidth := lg.Width(localContent)
 	globalWidth := lg.Width(globalContent)
-	localHeader := createHeader(true, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
-	globalHeader := createHeader(true, true, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+	localHead := createHeader(true, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
+	globalHead := createHeader(true, true, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+	localOnlyHead := createHeader(false, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
+	globalOnlyHead := createHeader(true, false, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
 
-	lm.localHeader = localHeader
+	lm.localHeader = localHead
 	lm.localContent = localContent
-	lm.globalHeader = globalHeader
+	lm.globalHeader = globalHead
 	lm.globalContent = globalContent
+	lm.localOnlyHeader = localOnlyHead
+	lm.globalOnlyHeader = globalOnlyHead
 }
 
 func (lm ListModel) HeaderContent() (string, string) {
 	var header, content string
+	if lm.showGlobal && !lm.showLocal {
+		return lm.globalOnlyHeader, lm.globalContent
+	}
+	if !lm.showGlobal && lm.showLocal {
+		return lm.localOnlyHeader, lm.localContent
+	}
 	if lm.environmentType == globalHeader {
 		header, content = lm.globalHeader, lm.globalContent
 	} else {
