@@ -27,6 +27,10 @@ type ListModel struct {
 	tabStyle         lg.Style
 	tabGap           lg.Style
 	viewport         viewport.Model
+	localHeader      string
+	globalHeader     string
+	localContent     string
+	globalContent    string
 }
 
 func (lm ListModel) Init() tea.Cmd {
@@ -63,9 +67,40 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				lm.environmentType = localHeader
 			}
+		case msg.String() == "r":
+			lm.Refresh()
 		}
 	}
 	return lm, nil
+}
+
+func (lm *ListModel) Refresh() {
+	err := lm.notary.GetVenvs()
+	if err != nil {
+		return
+	}
+	localContent := createBody(lm.notary, true, true, localHeader, lm.itemStyle, lm.currentItemStyle)
+	globalContent := createBody(lm.notary, true, true, globalHeader, lm.itemStyle, lm.currentItemStyle)
+	localWidth := lg.Width(localContent)
+	globalWidth := lg.Width(globalContent)
+	localHeader := createHeader(true, true, localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
+	globalHeader := createHeader(true, true, globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+
+	lm.localHeader = localHeader
+	lm.localContent = localContent
+	lm.globalHeader = globalHeader
+	lm.globalContent = globalContent
+}
+
+func (lm ListModel) HeaderContent() (string, string) {
+	var header, content string
+	if lm.environmentType == globalHeader {
+		header, content = lm.globalHeader, lm.globalContent
+	} else {
+		header, content = lm.localHeader, lm.localContent
+	}
+
+	return header, content
 }
 
 func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
@@ -73,16 +108,21 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 	if err != nil {
 		return ListModel{}, err
 	}
+	environmentType := globalHeader
+	if localVenv && !globalVenv {
+		environmentType = localHeader
+	}
 	lm := ListModel{
 		notary:           notary,
 		showGlobal:       globalVenv,
 		showLocal:        localVenv,
-		environmentType:  globalHeader,
+		environmentType:  environmentType,
 		activeTabStyle:   activeTab,
 		tabStyle:         tab,
 		itemStyle:        itemStyle,
 		currentItemStyle: currentItemStyle,
 	}
+	lm.Refresh()
 	return lm, nil
 }
 
