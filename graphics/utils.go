@@ -42,7 +42,7 @@ func createGlobalHeader(width int, activeStyle, inactiveStyle lg.Style) string {
 	return fillLine(header, width, inactiveStyle)
 }
 
-func createActiveHeader(activeHeader headerType, width int, activeStyle, inactiveStyle lg.Style) string {
+func createActiveHeader(activeHeader headerType, contentWidth, rowWidth int, activeStyle, inactiveStyle lg.Style) string {
 	globalStyle := inactiveStyle
 	localStyle := inactiveStyle
 	if activeHeader == globalHeader {
@@ -56,7 +56,14 @@ func createActiveHeader(activeHeader headerType, width int, activeStyle, inactiv
 		globalStyle.Render(GlobalName),
 		localStyle.Render(LocalName),
 	)
-	return fillLine(header, width, inactiveStyle)
+	for i := 0; i < min(len(LocalName), len(GlobalName)) && lg.Width(header) > rowWidth; i++ {
+		header = lg.JoinHorizontal(
+			lg.Top,
+			globalStyle.Render(GlobalName[:len(GlobalName)-1-i]+truncateChar),
+			localStyle.Render(LocalName[:len(LocalName)-1-i]+truncateChar),
+		)
+	}
+	return fillLine(header, contentWidth, inactiveStyle)
 }
 
 func printGlobal(notary vn.Notary, width int, itemStyle, currentItemStyle lg.Style) string {

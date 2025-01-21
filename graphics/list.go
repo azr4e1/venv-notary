@@ -153,8 +153,8 @@ func (lm *ListModel) Refresh() {
 	globalContent := printGlobal(lm.notary, width, lm.itemStyle, lm.currentItemStyle)
 	localWidth := lg.Width(localContent)
 	globalWidth := lg.Width(globalContent)
-	localActiveHeader := createActiveHeader(localHeader, localWidth, lm.activeTabStyle, lm.tabStyle)
-	globalActiveHeader := createActiveHeader(globalHeader, globalWidth, lm.activeTabStyle, lm.tabStyle)
+	localActiveHeader := createActiveHeader(localHeader, localWidth, width, lm.activeTabStyle, lm.tabStyle)
+	globalActiveHeader := createActiveHeader(globalHeader, globalWidth, width, lm.activeTabStyle, lm.tabStyle)
 	localOnlyHeader := createLocalHeader(localWidth, lm.activeTabStyle, lm.tabStyle)
 	globalOnlyHeader := createGlobalHeader(globalWidth, lm.activeTabStyle, lm.tabStyle)
 
