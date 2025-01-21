@@ -28,9 +28,10 @@ type ListModel struct {
 	environmentType headerType
 	windowWidth     int
 	windowHeight    int
-	MaxHeight       int
-	MaxWidth        int
 	ready           bool
+
+	MaxHeight int
+	MaxWidth  int
 
 	itemStyle        lg.Style
 	currentItemStyle lg.Style
@@ -56,6 +57,9 @@ func (lm ListModel) View() string {
 	var header, content string
 	header = lm.headerView()
 	if lm.showGlobal == lm.showLocal {
+		if !lm.ready {
+			return "\n  Initializing..."
+		}
 		content = lm.viewport.View()
 	} else {
 		content = lm.contentView()
