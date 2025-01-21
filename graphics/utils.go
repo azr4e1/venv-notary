@@ -1,6 +1,7 @@
 package graphics
 
 import (
+	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -83,7 +84,10 @@ func printLocal(notary vn.Notary, itemStyle, currentItemStyle lg.Style) string {
 	for _, name := range notary.ListLocal() {
 		clnName, version := vn.ExtractVersion(filepath.Base(name))
 		version = strings.ReplaceAll(version, ReplaceVersion, "")
+		clnNameWithHash := clnName
 		clnName = vn.RemoveHash(clnName)
+		hashVal := clnNameWithHash[len(clnName)+1:]
+		clnName = fmt.Sprintf("%s-%s", clnName, hashVal[:4])
 		oldVersions, ok := items[clnName]
 		if !ok {
 			oldVersions = []string{}
