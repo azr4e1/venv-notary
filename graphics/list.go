@@ -29,6 +29,7 @@ type ListModel struct {
 	windowWidth     int
 	windowHeight    int
 	ready           bool
+	errorMessage    string
 
 	MaxHeight int
 	MaxWidth  int
@@ -38,6 +39,7 @@ type ListModel struct {
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
 	tabGap           lg.Style
+	errorStyle       lg.Style
 
 	viewport viewport.Model
 
@@ -65,6 +67,13 @@ func (lm ListModel) View() string {
 		content = lm.contentView()
 	}
 	output := lg.JoinVertical(lg.Left, header, content)
+	if errorMessage := lm.errorMessage; errorMessage != "" {
+		width := min(lm.windowWidth, lm.MaxWidth) - 4 // account for padding
+		if len(errorMessage) > width && width > 0 {
+			errorMessage = errorMessage[:width-1] + truncateChar
+		}
+		output = lg.JoinVertical(lg.Left, output, lm.errorStyle.Render(errorMessage))
+	}
 	output = lg.NewStyle().Padding(1, 0).Render(output)
 	return output
 }
@@ -90,7 +99,7 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		headerHeight := lg.Height(lm.headerView())
-		windowHeight := msg.Height - headerHeight - 2
+		windowHeight := msg.Height - headerHeight - 3
 		lm.windowHeight = windowHeight
 		lm.windowWidth = msg.Width
 
@@ -99,7 +108,7 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			content := lm.contentView()
 			contentHeight := lg.Height(content)
 			lm.viewport = viewport.New(min(msg.Width, lm.MaxWidth), min(windowHeight, lm.MaxHeight, contentHeight))
-			lm.viewport.YPosition = headerHeight + 2
+			lm.viewport.YPosition = headerHeight + 3
 			lm.viewport.SetContent(content)
 			lm.ready = true
 		} else {
@@ -209,7 +218,14 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 	if localVenv && !globalVenv {
 		environmentType = localHeader
 	}
-	pythonVersion, _ := vn.PythonVersion(pythonExec)
+
+	var pythonVersion, errorMessage string
+	if pythonExec != "" {
+		pythonVersion, err = vn.PythonVersion(pythonExec)
+	}
+	if err != nil {
+		errorMessage = err.Error()
+	}
 	lm := ListModel{
 		notary:           notary,
 		showGlobal:       globalVenv,
@@ -219,9 +235,11 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 		activeTabStyle:   activeTab,
 		tabStyle:         tab,
 		itemStyle:        itemStyle,
+		errorStyle:       errorStyle,
 		currentItemStyle: currentItemStyle,
 		MaxHeight:        MaxHeight,
 		MaxWidth:         MaxWidth,
+		errorMessage:     errorMessage,
 	}
 	lm.Refresh()
 	return lm, nil

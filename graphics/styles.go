@@ -10,6 +10,7 @@ var (
 	inactiveHighlight = lg.Color("242")
 	itemColor         = lg.Color("15")
 	currentItemColor  = lg.Color("214")
+	errorColor        = lg.Color("162")
 )
 
 // item styles
@@ -22,6 +23,7 @@ var (
 	activeTab         = tab.Foreground(highlight).Bold(true)
 	venvBlockStyle    = lg.NewStyle().Padding(0, 1)
 	versionBlockStyle = lg.NewStyle().PaddingLeft(1)
+	errorStyle        = lg.NewStyle().Italic(true).Foreground(errorColor)
 )
 
 // header style
