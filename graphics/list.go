@@ -13,20 +13,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	MaxHeight = 130
+	MaxWidth  = 96
+)
+
 type cobraFunc func(*cobra.Command, []string) error
 
 type ListModel struct {
-	notary           vn.Notary
-	showGlobal       bool
-	showLocal        bool
-	showVersion      string
-	environmentType  headerType
+	notary          vn.Notary
+	showGlobal      bool
+	showLocal       bool
+	showVersion     string
+	environmentType headerType
+	windowWidth     int
+	windowHeight    int
+	ready           bool
+
 	itemStyle        lg.Style
 	currentItemStyle lg.Style
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
 	tabGap           lg.Style
-	viewport         viewport.Model
+
+	viewport viewport.Model
+
 	localHeader      string
 	globalHeader     string
 	localOnlyHeader  string
@@ -40,41 +51,105 @@ func (lm ListModel) Init() tea.Cmd {
 }
 
 func (lm ListModel) View() string {
-	header, content := lm.HeaderContent()
+	var header, content string
+	header = lm.headerView()
+	if lm.showGlobal == lm.showLocal {
+		content = lm.viewport.View()
+	} else {
+		content = lm.contentView()
+	}
 	output := lg.JoinVertical(lg.Left, header, content)
-	return lg.NewStyle().Padding(1, 0).Render(output)
+	output = lg.NewStyle().Padding(1, 0).Render(output)
+	return output
 }
 
 func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case msg.Type == tea.KeyCtrlC || msg.String() == "q":
 			return lm, tea.Quit
 		case msg.String() == "l":
-			lm.environmentType = localHeader
+			lm.local()
 		case msg.String() == "g":
-			lm.environmentType = globalHeader
+			lm.global()
 		case msg.Type == tea.KeyTab:
-			if lm.environmentType == localHeader {
-				lm.environmentType = globalHeader
-			} else {
-				lm.environmentType = localHeader
-			}
+			lm.switchContent()
 		case msg.Type == tea.KeyShiftTab:
-			if lm.environmentType == localHeader {
-				lm.environmentType = globalHeader
-			} else {
-				lm.environmentType = localHeader
-			}
+			lm.switchContent()
 		case msg.String() == "r":
-			lm.Refresh()
+			lm.refresh()
+		}
+	case tea.WindowSizeMsg:
+		headerHeight := lg.Height(lm.headerView())
+		content := lm.contentView()
+		contentHeight := lg.Height(content)
+		windowHeight := msg.Height - headerHeight - 2
+		lm.windowHeight = windowHeight
+		lm.windowWidth = msg.Width
+
+		if !lm.ready {
+			// Since this program is using the full size of the viewport we
+			// need to wait until we've received the window dimensions before
+			// we can initialize the viewport. The initial dimensions come in
+			// quickly, though asynchronously, which is why we wait for them
+			// here.
+			lm.viewport = viewport.New(min(msg.Width, MaxWidth), min(windowHeight, MaxHeight, contentHeight))
+			lm.viewport.YPosition = headerHeight + 2
+			lm.viewport.SetContent(content)
+			lm.ready = true
+
+			// This is only necessary for high performance rendering, which in
+			// most cases you won't need.
+			//
+			// Render the viewport one line below the header.
+			lm.viewport.YPosition = headerHeight + 1
+		} else {
+			lm.viewport.Width = min(msg.Width, MaxWidth)
+			lm.viewport.Height = min(windowHeight, MaxHeight, contentHeight)
 		}
 	}
-	return lm, nil
+	lm.viewport, cmd = lm.viewport.Update(msg)
+	cmds = append(cmds, cmd)
+	return lm, tea.Batch(cmds...)
 }
 
-func (lm *ListModel) Refresh() {
+func (lm *ListModel) ResetViewport() {
+	viewport := lm.viewport
+
+	content := lm.contentView()
+	contentHeight := lg.Height(content)
+
+	viewport.Width = min(lm.windowWidth, MaxWidth)
+	viewport.Height = min(lm.windowHeight, MaxHeight, contentHeight)
+	viewport.SetContent(content)
+
+	lm.viewport = viewport
+}
+
+func (lm *ListModel) switchContent() {
+	if lm.environmentType == localHeader {
+		lm.global()
+	} else {
+		lm.local()
+	}
+}
+
+func (lm *ListModel) global() {
+	lm.environmentType = globalHeader
+	lm.ResetViewport()
+}
+
+func (lm *ListModel) local() {
+	lm.environmentType = localHeader
+	lm.ResetViewport()
+}
+
+func (lm *ListModel) refresh() {
 	err := lm.notary.GetVenvs()
 	if err != nil {
 		return
@@ -94,23 +169,46 @@ func (lm *ListModel) Refresh() {
 	lm.globalContent = globalContent
 	lm.localOnlyHeader = localOnlyHeader
 	lm.globalOnlyHeader = globalOnlyHeader
+
+	if lm.environmentType == globalHeader {
+		lm.global()
+	} else {
+		lm.local()
+	}
 }
 
-func (lm ListModel) HeaderContent() (string, string) {
-	var header, content string
+func (lm ListModel) headerView() string {
+	var header string
 	if lm.showGlobal && !lm.showLocal {
-		return lm.globalOnlyHeader, lm.globalContent
+		return lm.globalOnlyHeader
 	}
 	if !lm.showGlobal && lm.showLocal {
-		return lm.localOnlyHeader, lm.localContent
+		return lm.localOnlyHeader
 	}
 	if lm.environmentType == globalHeader {
-		header, content = lm.globalHeader, lm.globalContent
+		header = lm.globalHeader
 	} else {
-		header, content = lm.localHeader, lm.localContent
+		header = lm.localHeader
 	}
 
-	return header, content
+	return header
+}
+
+func (lm ListModel) contentView() string {
+	var content string
+	if lm.showGlobal && !lm.showLocal {
+		return lm.globalContent
+	}
+	if !lm.showGlobal && lm.showLocal {
+		return lm.localContent
+	}
+	if lm.environmentType == globalHeader {
+		content = lm.globalContent
+	} else {
+		content = lm.localContent
+	}
+
+	return content
 }
 
 func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
@@ -132,7 +230,7 @@ func newListModel(localVenv, globalVenv bool) (tea.Model, error) {
 		itemStyle:        itemStyle,
 		currentItemStyle: currentItemStyle,
 	}
-	lm.Refresh()
+	lm.refresh()
 	return lm, nil
 }
 
