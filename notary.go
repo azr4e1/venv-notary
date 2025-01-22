@@ -119,7 +119,7 @@ func (n *Notary) CreateLocal(python string) error {
 		}
 		_, ok := n.venvList[venv.Path]
 		if ok {
-			return errors.New("Environment already exists at this location with this Python version.")
+			return errors.New("Environment already exists at this location and with this Python version.")
 		}
 		err = venv.Create()
 		if err != nil {
@@ -146,7 +146,7 @@ func (n *Notary) CreateGlobal(name, python string) error {
 		}
 		_, ok := n.venvList[venv.Path]
 		if ok {
-			return errors.New("Environment already exists with this name with this Python version.")
+			return errors.New("Environment already exists with this name and this Python version.")
 		}
 		err = venv.Create()
 		if err != nil {

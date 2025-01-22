@@ -48,7 +48,7 @@ func activateGlobal(notary venv.Notary, cmd *cobra.Command, args []string) error
 	if err != nil {
 		if errors.As(err, &venv.VenvNotRegisteredError{}) {
 			// err = notary.CreateGlobal(name, pythonVersion)
-			err = graphics.StatusMain("No environment registered with this name and version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
+			err = graphics.StatusMain("No environment registered with this name and this Python version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
 			if err != nil {
 				return nil
 			}
@@ -69,7 +69,7 @@ func activateLocal(notary venv.Notary, cmd *cobra.Command, args []string) error 
 	if err != nil {
 		if errors.As(err, &venv.VenvNotRegisteredError{}) {
 			// err = notary.CreateLocal(pythonVersion)
-			err = graphics.StatusMain("No environment registered at this location and with this version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
+			err = graphics.StatusMain("No environment registered at this location and with this Python version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
 			if err != nil {
 				return nil
 			}
