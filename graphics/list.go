@@ -164,6 +164,12 @@ func (lm *ListModel) Refresh() {
 	lm.globalContent = globalContent
 	lm.localOnlyHeader = localOnlyHeader
 	lm.globalOnlyHeader = globalOnlyHeader
+
+	if lm.environmentType == globalHeader {
+		lm.Global()
+	} else {
+		lm.Local()
+	}
 }
 
 func (lm ListModel) headerView() string {
