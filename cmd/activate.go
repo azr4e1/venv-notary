@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	venv "github.com/azr4e1/venv-notary"
+	"github.com/azr4e1/venv-notary/graphics"
 	"github.com/spf13/cobra"
 )
 
@@ -26,34 +27,60 @@ func activateCobraFunction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		err = notary.ActivateLocal(pythonVersion)
+		err = activateLocal(notary, cmd, args)
 		if err != nil {
-			if errors.As(err, &venv.VenvNotRegisteredError{}) {
-				err = notary.CreateLocal(pythonVersion)
-				if err != nil {
-					return err
-				}
-				err = notary.ActivateLocal(pythonVersion)
-				return err
-			}
 			return err
 		}
 	} else if len(args) > 0 {
-		name := args[0]
-		err = notary.ActivateGlobal(name, pythonVersion)
+		err = activateGlobal(notary, cmd, args)
 		if err != nil {
-			if errors.As(err, &venv.VenvNotRegisteredError{}) {
-				err = notary.CreateGlobal(name, pythonVersion)
-				if err != nil {
-					return err
-				}
-				err = notary.ActivateGlobal(name, pythonVersion)
-				return err
-			}
 			return err
 		}
 	} else {
 		return errors.New("you need to either activate a local or global venv.")
+	}
+	return nil
+}
+
+func activateGlobal(notary venv.Notary, cmd *cobra.Command, args []string) error {
+	name := args[0]
+	err := notary.ActivateGlobal(name, pythonVersion)
+	if err != nil {
+		if errors.As(err, &venv.VenvNotRegisteredError{}) {
+			// err = notary.CreateGlobal(name, pythonVersion)
+			err = graphics.StatusMain("No environment registered with this name and version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
+			if err != nil {
+				return nil
+			}
+			err = notary.GetVenvs()
+			if err != nil {
+				return err
+			}
+			err = notary.ActivateGlobal(name, pythonVersion)
+			return err
+		}
+		return err
+	}
+	return nil
+}
+
+func activateLocal(notary venv.Notary, cmd *cobra.Command, args []string) error {
+	err := notary.ActivateLocal(pythonVersion)
+	if err != nil {
+		if errors.As(err, &venv.VenvNotRegisteredError{}) {
+			// err = notary.CreateLocal(pythonVersion)
+			err = graphics.StatusMain("No environment registered at this location and with this version. Creating it now...", "Environment successfully created.", createAction)(cmd, args)
+			if err != nil {
+				return nil
+			}
+			err = notary.GetVenvs()
+			if err != nil {
+				return err
+			}
+			err = notary.ActivateLocal(pythonVersion)
+			return err
+		}
+		return err
 	}
 	return nil
 }
