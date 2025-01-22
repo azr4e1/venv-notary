@@ -37,11 +37,11 @@ func (sm StatusModel) Init() tea.Cmd {
 
 func (sm StatusModel) View() string {
 	if sm.errorMessage != "" {
-		return errorStyle.Render("\n " + sm.errorMessage + "\n")
+		return errorStyle.Render(sm.errorMessage + "\n")
 	}
-	str := fmt.Sprintf("\n %s %s\n", sm.spinner.View(), sm.waitingMessage)
+	str := fmt.Sprintf("%s %s\n", sm.spinner.View(), sm.waitingMessage)
 	if sm.quitting {
-		return "\n " + sm.exitMessage + "\n"
+		return sm.exitMessage + "\n"
 	}
 	return str
 }

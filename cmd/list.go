@@ -20,4 +20,5 @@ func init() {
 	listCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "list only global venvs.")
 	listCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "list only local venvs.")
 	listCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "filter by python version.")
+	listCmd.MarkFlagsMutuallyExclusive("local", "global")
 }

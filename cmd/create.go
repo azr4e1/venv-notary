@@ -12,7 +12,7 @@ var (
 	createCmd = &cobra.Command{
 		Use:               "create",
 		Short:             "Create a local or global virtual environment",
-		RunE:              graphics.StatusMain("Creating environment...", "Environment created.", createAction),
+		RunE:              graphics.StatusMain("Creating environment...", "Environment successfully created.", createAction),
 		Args:              cobra.MaximumNArgs(1),
 		ValidArgsFunction: venvCompletion,
 	}
