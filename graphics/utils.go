@@ -135,12 +135,13 @@ func prettyPrintEnv(names []string, width int, activeName string, itemStyle, cur
 
 	coloredNames := []string{}
 	for _, n := range names {
+		fullName := n
 		// check if needs to be truncated
 		if len(n) > width && width > 0 {
 			n = n[:width-1] + truncateChar
 		}
 		el := itemStyle.Render(n)
-		if n == activeName {
+		if fullName == activeName {
 			el = currentItemStyle.Render(n)
 		}
 		coloredNames = append(coloredNames, el)
