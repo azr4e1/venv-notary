@@ -29,6 +29,7 @@ type ListModel struct {
 	windowWidth     int
 	windowHeight    int
 	ready           bool
+	error           error
 
 	MaxHeight int
 	MaxWidth  int
@@ -38,6 +39,7 @@ type ListModel struct {
 	activeTabStyle   lg.Style
 	tabStyle         lg.Style
 	tabGap           lg.Style
+	errorStyle       lg.Style
 
 	viewport viewport.Model
 
@@ -50,15 +52,21 @@ type ListModel struct {
 }
 
 func (lm ListModel) Init() tea.Cmd {
+	if lm.error != nil {
+		return func() tea.Msg { return errMsg(lm.error) }
+	}
 	return nil
 }
 
 func (lm ListModel) View() string {
+	if lm.error != nil {
+		return lm.errorStyle.Render(lm.error.Error() + "\n")
+	}
 	var header, content string
 	header = lm.headerView()
 	if lm.showGlobal == lm.showLocal {
 		if !lm.ready {
-			return "\n  Initializing..."
+			return "\nInitializing..."
 		}
 		content = lm.viewport.View()
 	} else {
@@ -75,6 +83,8 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
+	case errMsg:
+		return lm, tea.Quit
 	case tea.KeyMsg:
 		switch {
 		case msg.Type == tea.KeyCtrlC || msg.String() == "q":
@@ -219,9 +229,6 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 	var pythonVersion string
 	if pythonExec != "" {
 		pythonVersion, err = vn.PythonVersion(pythonExec)
-		if err != nil {
-			return ListModel{}, err
-		}
 	}
 	lm := ListModel{
 		notary:           notary,
@@ -235,6 +242,8 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 		currentItemStyle: currentItemStyle,
 		MaxHeight:        MaxHeight,
 		MaxWidth:         MaxWidth,
+		errorStyle:       errorStyle,
+		error:            err,
 	}
 	lm.Refresh()
 	return lm, nil
