@@ -137,9 +137,7 @@ func prettyPrintEnv(names []string, width int, activeName string, itemStyle, cur
 	for _, n := range names {
 		fullName := n
 		// check if needs to be truncated
-		if len(n) > width && width > 0 {
-			n = n[:width-1] + truncateChar
-		}
+		n = truncateLine(n, width)
 		el := itemStyle.Render(n)
 		if fullName == activeName {
 			el = currentItemStyle.Render(n)
@@ -175,4 +173,17 @@ func prettyPrintVersion(names []string, width int, items map[string][]string, ac
 	versionBlock := versionBlockStyle.Align(lg.Right).Render(strings.Join(versionBlockElements, "\n"))
 
 	return versionBlock
+}
+
+func truncateLine(line string, width int) string {
+	if width <= 0 {
+		return line
+	}
+	if width == 1 {
+		return truncateChar
+	}
+	if len(line) > width {
+		line = line[:width-2] + truncateChar
+	}
+	return line
 }

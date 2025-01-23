@@ -21,6 +21,9 @@ type StatusModel struct {
 	errorStyle     lg.Style
 	quitting       bool
 	action         func() error
+	maxWidth       int
+	width          int
+	ready          bool
 }
 
 func (sm StatusModel) Init() tea.Cmd {
@@ -37,11 +40,14 @@ func (sm StatusModel) Init() tea.Cmd {
 
 func (sm StatusModel) View() string {
 	if sm.errorMessage != "" {
-		return errorStyle.Render(sm.errorMessage + "\n")
+		return errorStyle.Render(truncateLine(sm.errorMessage, sm.width) + "\n")
 	}
-	str := fmt.Sprintf("%s %s\n", sm.spinner.View(), sm.waitingMessage)
+	if !sm.ready {
+		return "\n" + truncateLine("Initializing...", sm.width)
+	}
+	str := truncateLine(fmt.Sprintf("%s %s\n", sm.spinner.View(), sm.waitingMessage), sm.width)
 	if sm.quitting {
-		return sm.exitMessage + "\n"
+		return truncateLine(sm.exitMessage, sm.width) + "\n"
 	}
 	return str
 }
@@ -57,6 +63,10 @@ func (sm StatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case doneMsg:
 		sm.quitting = true
 		return sm, tea.Quit
+	case tea.WindowSizeMsg:
+		sm.width = min(sm.maxWidth, msg.Width)
+		sm.ready = true
+		return sm, nil
 	default:
 		var cmd tea.Cmd
 		sm.spinner, cmd = sm.spinner.Update(msg)
@@ -72,6 +82,7 @@ func newStatus(waitingMessage, exitMessage string, action func() error) StatusMo
 		exitMessage:    exitMessage,
 		action:         action,
 		spinner:        s,
+		maxWidth:       MaxWidth,
 	}
 	return sm
 }
