@@ -17,7 +17,7 @@ var (
 		Use:     "vn",
 		Short:   "A wrapper for python-venv",
 		Long:    `venv-notary is an application that makes it easy to manage global and local virtual environments for Python.`,
-		Version: "0.4.2",
+		Version: "0.4.3",
 	}
 )
 
