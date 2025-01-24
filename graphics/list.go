@@ -87,7 +87,7 @@ func (lm ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return lm, tea.Quit
 	case tea.KeyMsg:
 		switch {
-		case msg.Type == tea.KeyCtrlC || msg.String() == "q" || msg.String() == "esc":
+		case msg.Type == tea.KeyCtrlC || msg.String() == "q" || msg.String() == "esc" || msg.String() == "enter":
 			return lm, tea.Quit
 		case msg.String() == "l":
 			lm.Local()
