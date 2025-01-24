@@ -256,7 +256,7 @@ func ListMain(localVenv, globalVenv *bool, pythonExec *string, stdout io.Writer)
 			return err
 		}
 		if *localVenv != *globalVenv {
-			fmt.Fprintln(stdout, m.View())
+			fmt.Fprint(stdout, m.View())
 			return nil
 		}
 		p := tea.NewProgram(m)
