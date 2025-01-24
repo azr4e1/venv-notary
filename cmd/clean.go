@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"path/filepath"
-	"strings"
+
+	"regexp"
 
 	venv "github.com/azr4e1/venv-notary"
 	"github.com/azr4e1/venv-notary/graphics"
@@ -43,6 +44,10 @@ func cleanAction(cmd *cobra.Command, args []string) func() error {
 func deleteVenv(vPath []string, python, namePattern string) error {
 	var version string
 	var err error
+	var nameRegexp *regexp.Regexp
+	if namePattern != "" {
+		nameRegexp = regexp.MustCompile(namePattern)
+	}
 	if python != "" {
 		version, err = venv.PythonVersion(python)
 		if err != nil {
@@ -55,7 +60,7 @@ func deleteVenv(vPath []string, python, namePattern string) error {
 		if version != "" && version != venvVersion {
 			continue
 		}
-		if namePattern != "" && !strings.Contains(name, namePattern) {
+		if nameRegexp != nil && !nameRegexp.MatchString(name) {
 			continue
 		}
 		err = v.Delete()
