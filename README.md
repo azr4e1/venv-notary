@@ -116,7 +116,7 @@ You can also provide the `-p/--python` flag to delete only the environments with
 
 You can also provide the `-n/--name` flag to delete only the environments whose names match a regexp pattern.
 
-### Examples
+#### Examples
 
 Delete all global environments:
 
