@@ -62,6 +62,7 @@ func TestFailsAtCreatingAVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer file.Close()
 	err = Venv{Path: file.Name()}.Create()
 	if err == nil {
 		t.Error("Creates virtual env even when file already exists")
@@ -111,6 +112,7 @@ func TestCheckIsNotVirtualEnv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer file.Close()
 	v = Venv{Path: file.Name()}
 	if v.IsVenv() {
 		t.Error("file is not an environment!")
@@ -156,6 +158,7 @@ func TestDeleteVenv_DoesNotDeleteVenv(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer file.Close()
 	v = Venv{Path: file.Name()}
 	err = v.Delete()
 	if err == nil {
