@@ -4,7 +4,7 @@ venv-notary is a simple utility to easily manage your Python environment needs. 
 
 > do one thing and do it well
 
-venv-notary doesn't try to manage packages or do dependency resolution. It only creates and manages python environment, so that you don't need to worry about where to create them and how to activate them, or even remembering where the hell you created that environment you need now.
+venv-notary doesn't try to manage packages or do dependency resolution. It only creates and manages python environments, so that you don't need to worry about where to create them and how to activate them, or even remembering where the hell you created that environment you need now.
 
 ## Requirements
 
@@ -17,7 +17,7 @@ venv-notary doesn't try to manage packages or do dependency resolution. It only 
 go install github.com/azr4e1/venv-notary/vn@latest
 ```
 
-Make sure your `$GOPATH` is in your `$PATH`
+Make sure your `$GOPATH` is in your `$PATH`.
 
 Once installed, run `vn completion <YOUR SHELL>`, and append the result into your shell config in order to enable completions for venv-notary.
 
@@ -32,9 +32,15 @@ Shells supported for completion:
 
 venv-notary distinguishes between two types of environments: local and global.
 
-**Global** environments are environments that you would call from anywhere in the filesystem. They are meant to contain packages that you know you would need for various tasks, and not necessarily just for a single project. For example, you could have a `data-science` global environment for whenever you need to perform some eda on the fly, or a `llm` environment when you want to just create a small script calling openai or gemini APIs.
+**Global environments** are environments that you would call from anywhere in the filesystem. They are meant to contain packages that you know you would need for various tasks, and not necessarily just for a single project. For example, you could have a `data-science` global environment for whenever you need to perform some eda on the fly, or a `llm` environment for whenever you want to just create a small script calling openai or gemini APIs.
 
-**Local** environments are environments specific to a folder. They are meant to be used as project specific environments, and are similar in concept to poetry's shell.
+**Local environments** are environments specific to a folder. They are meant to be used as project specific environments, and are similar in nature to poetry's `shell`.
+
+Remember to call `vn help` on any command if you're stuck:
+
+```bash
+vn help clean
+```
 
 ### Create a new environment
 
@@ -72,13 +78,13 @@ Activate a local environment:
 vn activate -l
 ```
 
-Activate an environment with specific version:
+Activate a local environment with a specific version:
 
 ```bash
 vn activate -l -p python3.9
 ```
 
-**Note**: if the environment you want to activate hasn't been created before, it will automatically be created.
+**Note**: if the environment you want to activate doesn't exist, it will automatically be created.
 
 ### Delete an environment
 
@@ -94,7 +100,7 @@ Delete a local environment:
 vn delete -l
 ```
 
-Delete an environment with specific version:
+Delete a local environment with specific version:
 
 ```bash
 vn delete -l -p python3.9
@@ -104,13 +110,13 @@ vn delete -l -p python3.9
 
 `clean` is like `delete` on steroid. It allows to delete environments in batches.
 
-You must specify whether to clean the global or the local environments. **If no other flag is provided, all your local/global environments will be deleted**
+You must specify whether to clean the global or the local environments. **If no other flag is provided, all your local/global environments will be deleted**!
 
 You can also provide the `-p/--python` flag to delete only the environments with a specific Python version.
 
-You can also provide the `-n/--name` flag to delete only the environments whose name match a regexp pattern.
+You can also provide the `-n/--name` flag to delete only the environments whose names match a regexp pattern.
 
-Examples:
+### Examples
 
 Delete all global environments:
 
