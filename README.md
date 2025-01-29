@@ -8,7 +8,7 @@ venv-notary doesn't try to manage packages or do dependency resolution. It only 
 
 ## Requirements
 
-- bash (more shells coming soon)
+- bash, zsh, fish or powershell
 - go version 1.23
 
 ## Install
