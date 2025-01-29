@@ -14,7 +14,7 @@ var (
 	cleanCmd = &cobra.Command{
 		Use:   "clean",
 		Short: "Delete all local or global environments. You can filter by Python version.",
-		RunE:  graphics.StatusMain("Cleaning up environments...", "All environments deleted.", cleanAction),
+		RunE:  graphics.StatusMain("Cleaning up environments...", "All environments deleted.", cleanAction, nil),
 		Args:  cobra.NoArgs,
 	}
 )

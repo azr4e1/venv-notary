@@ -87,8 +87,14 @@ func newStatus(waitingMessage, exitMessage string, action func() error) StatusMo
 	return sm
 }
 
-func StatusMain(waitingMessage, exitMessage string, action actionFunc) cobraFunc {
+func StatusMain(waitingMessage, exitMessage string, action actionFunc, setup cobraFunc) cobraFunc {
 	return func(cmd *cobra.Command, args []string) error {
+		if setup != nil {
+			err := setup(cmd, args)
+			if err != nil {
+				return err
+			}
+		}
 		m := newStatus(waitingMessage, exitMessage, action(cmd, args))
 		p := tea.NewProgram(m)
 		_, err := p.Run()
