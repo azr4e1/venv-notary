@@ -180,6 +180,7 @@ func SemanticVersioningSort(a, b string) int {
 	}
 	return 1
 }
+
 func getDataHome() (string, error) {
 	var dataHome string
 	switch runtime.GOOS {

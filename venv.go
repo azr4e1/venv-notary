@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/azr4e1/venv-notary/shell"
 )
 
 type Venv struct {
@@ -95,13 +97,13 @@ func (v Venv) Activate() error {
 	if v.IsActive() {
 		return errors.New("environment is already active!")
 	}
-	activatePath := filepath.Join(v.Path, "bin/activate")
-	cmd := exec.Command("bash", "-c", "source '"+activatePath+"'; bash")
-	// cmd := exec.Command("bash")
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	activeShell := shell.NewShell()
+	activateScript := activeShell.GetActivationScript()
+	if activateScript == "" {
+		return errors.New("cannot locate activation script")
+	}
+	activatePath := filepath.Join(v.Path, "bin", activateScript)
+	err := activeShell.Source(activatePath)
 	return err
 }
 
