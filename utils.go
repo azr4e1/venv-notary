@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -178,4 +179,34 @@ func SemanticVersioningSort(a, b string) int {
 		return 0
 	}
 	return 1
+}
+func getDataHome() (string, error) {
+	var dataHome string
+	switch runtime.GOOS {
+	case "linux":
+		dataHome = os.Getenv("XDG_DATA_HOME")
+		if dataHome == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return "", err
+			}
+			dataHome = filepath.Join(home, ".local/share")
+		}
+	case "darwin":
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		dataHome = filepath.Join(home, "Library")
+	case "windows":
+		dataHome = os.Getenv("LOCALAPPDATA")
+		if dataHome == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return "", err
+			}
+			dataHome = filepath.Join(home, "AppData/Local")
+		}
+	}
+	return dataHome, nil
 }

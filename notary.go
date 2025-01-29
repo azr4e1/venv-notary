@@ -21,26 +21,20 @@ const (
 )
 
 const (
-	DATAHOMEENV   = "XDG_DATA_HOME"
-	DATAHOMEDIR   = ".local/share"
 	NotaryDir     = "venv-notary"
 	VersionPrefix = "py"
 )
 
 func NewNotary() (Notary, error) {
-	dataHome := os.Getenv(DATAHOMEENV)
-	if dataHome == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return Notary{}, err
-		}
-		dataHome = filepath.Join(home, DATAHOMEDIR)
+	dataHome, err := getDataHome()
+	if err != nil {
+		return Notary{}, err
 	}
 	notaryDir := filepath.Join(dataHome, NotaryDir)
 	notary := Notary{
 		venvDir: notaryDir,
 	}
-	err := notary.SetUp()
+	err = notary.SetUp()
 	if err != nil {
 		return Notary{}, err
 	}
