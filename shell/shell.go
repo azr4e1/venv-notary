@@ -14,7 +14,7 @@ const (
 	bash       shellType = "bash"
 	zsh        shellType = "zsh"
 	fish       shellType = "fish"
-	powershell shellType = "pwsh"
+	powershell shellType = "powershell"
 )
 
 var supportedShells = []shellType{bash, zsh, fish, powershell}

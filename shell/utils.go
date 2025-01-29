@@ -15,7 +15,13 @@ var shellVariables = map[shellType]string{
 }
 
 func hasShell(shellName shellType) bool {
-	command := exec.Command(string(shellName), "--version")
+	var command *exec.Cmd
+	switch shellName {
+	case bash, fish, zsh:
+		command = exec.Command(string(shellName), "--version")
+	case powershell:
+		command = exec.Command(string(shellName), "-H")
+	}
 	_, err := command.CombinedOutput()
 	if err != nil {
 		return false
