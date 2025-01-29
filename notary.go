@@ -163,11 +163,17 @@ func (n *Notary) delete(venv Venv) error {
 }
 
 func (n *Notary) DeleteLocal(python string) error {
-	venvName, err := createLocalName()
+	venv, err := n.GetLocalVenv(python)
 	if err != nil {
 		return err
 	}
-	venv := Venv{Path: filepath.Join(n.LocalDir(), venvName), Name: venvName, Python: python}
+	if venvs := n.GetRegisteredVersionsOfVenv(venv, true); python == "" && len(venvs) >= 1 {
+		if len(venvs) == 1 {
+			registeredVenv := Venv{Path: venvs[0]}
+			return n.delete(registeredVenv)
+		}
+		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
+	}
 	venv, err = addVersion(venv)
 	if err != nil {
 		return err
@@ -181,8 +187,18 @@ func (n *Notary) DeleteLocal(python string) error {
 }
 
 func (n *Notary) DeleteGlobal(name, python string) error {
-	venv := Venv{Path: filepath.Join(n.GlobalDir(), name), Name: name, Python: python}
-	venv, err := addVersion(venv)
+	venv, err := n.GetGlobalVenv(name, python)
+	if err != nil {
+		return err
+	}
+	if venvs := n.GetRegisteredVersionsOfVenv(venv, false); python == "" && len(venvs) >= 1 {
+		if len(venvs) == 1 {
+			registeredVenv := Venv{Path: venvs[0]}
+			return n.delete(registeredVenv)
+		}
+		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
+	}
+	venv, err = addVersion(venv)
 	if err != nil {
 		return err
 	}
@@ -260,6 +276,27 @@ func (n Notary) IsRegisteredNoVersion(venv Venv, isLocal bool) bool {
 	return false
 }
 
+func (n Notary) GetRegisteredVersionsOfVenv(venv Venv, isLocal bool) []string {
+	match, _ := ExtractVersion(venv.Path)
+	registeredVenvs := []string{}
+	for v, l := range n.venvList {
+		if isLocal {
+			if l != LocalLoc {
+				continue
+			}
+		} else {
+			if l != GlobalLoc {
+				continue
+			}
+		}
+		name, _ := ExtractVersion(v)
+		if name == match {
+			registeredVenvs = append(registeredVenvs, v)
+		}
+	}
+	return registeredVenvs
+}
+
 func (n Notary) GetHighestVersionRegistered(venv Venv, isLocal bool) Venv {
 	registeredVersions := map[string]string{}
 	versionSlice := []string{}
@@ -296,10 +333,12 @@ func (n Notary) ActivateGlobal(name, python string) error {
 	if err != nil {
 		return err
 	}
-	if python == "" && n.IsRegisteredNoVersion(venv, false) {
-		registeredVenv := n.GetHighestVersionRegistered(venv, false)
-		err = registeredVenv.Activate()
-		return err
+	if venvs := n.GetRegisteredVersionsOfVenv(venv, false); python == "" && len(venvs) >= 1 {
+		if len(venvs) == 1 {
+			registeredVenv := Venv{Path: venvs[0]}
+			return registeredVenv.Activate()
+		}
+		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
 	}
 	venv, err = addVersion(venv)
 	if err != nil {
@@ -317,10 +356,12 @@ func (n Notary) ActivateLocal(python string) error {
 	if err != nil {
 		return err
 	}
-	if python == "" && n.IsRegisteredNoVersion(venv, true) {
-		registeredVenv := n.GetHighestVersionRegistered(venv, true)
-		err = registeredVenv.Activate()
-		return err
+	if venvs := n.GetRegisteredVersionsOfVenv(venv, true); python == "" && len(venvs) >= 1 {
+		if len(venvs) == 1 {
+			registeredVenv := Venv{Path: venvs[0]}
+			return registeredVenv.Activate()
+		}
+		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
 	}
 	venv, err = addVersion(venv)
 	if err != nil {
