@@ -211,3 +211,15 @@ func getDataHome() (string, error) {
 	}
 	return dataHome, nil
 }
+
+func getVenvExecDir() string {
+	var execDir string
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		execDir = "bin"
+	case "windows":
+		execDir = "Scripts"
+	}
+
+	return execDir
+}

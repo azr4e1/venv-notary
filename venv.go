@@ -32,7 +32,11 @@ func (v Venv) IsVenv() bool {
 	if !stat.IsDir() {
 		return false
 	}
-	activatePath := filepath.Join(dir, "bin/activate")
+	execDir := getVenvExecDir()
+	if execDir == "" {
+		return false
+	}
+	activatePath := filepath.Join(dir, execDir, "activate")
 	stat, err = os.Stat(activatePath)
 	if err != nil {
 		return false
@@ -40,7 +44,7 @@ func (v Venv) IsVenv() bool {
 	if !stat.Mode().IsRegular() {
 		return false
 	}
-	pythonPath := filepath.Join(dir, "bin/python")
+	pythonPath := filepath.Join(dir, execDir, "python")
 	stat, err = os.Stat(pythonPath)
 	if err != nil {
 		return false
@@ -102,7 +106,11 @@ func (v Venv) Activate() error {
 	if activateScript == "" {
 		return errors.New("cannot locate activation script")
 	}
-	activatePath := filepath.Join(v.Path, "bin", activateScript)
+	execDir := getVenvExecDir()
+	if execDir == "" {
+		return errors.New("cannot locate activation script")
+	}
+	activatePath := filepath.Join(v.Path, execDir, activateScript)
 	err := activeShell.Source(activatePath)
 	return err
 }
