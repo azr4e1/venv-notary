@@ -100,7 +100,11 @@ func (n *Notary) GetVenvs() error {
 }
 
 func (n *Notary) CreateLocal(python string) error {
-	venvName, err := createLocalName()
+	currDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	venvName, err := createLocalName(currDir)
 	if err != nil {
 		return err
 	}
@@ -163,7 +167,11 @@ func (n *Notary) delete(venv Venv) error {
 }
 
 func (n *Notary) DeleteLocal(python string) error {
-	venv, err := n.GetLocalVenv(python)
+	currDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	venv, err := n.GetLocalVenv(currDir, python)
 	if err != nil {
 		return err
 	}
@@ -240,8 +248,8 @@ func (n Notary) GetGlobalVenv(name, python string) (Venv, error) {
 	return venv, nil
 }
 
-func (n Notary) GetLocalVenv(python string) (Venv, error) {
-	venvName, err := createLocalName()
+func (n Notary) GetLocalVenv(currDir string, python string) (Venv, error) {
+	venvName, err := createLocalName(currDir)
 	if err != nil {
 		return Venv{}, err
 	}
@@ -352,30 +360,39 @@ func (n Notary) ActivateGlobal(name, python string) error {
 }
 
 func (n Notary) ActivateLocal(python string) error {
-	venv, err := n.GetLocalVenv(python)
+	currDir, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	if venvs := n.GetRegisteredVersionsOfVenv(venv, true); python == "" && len(venvs) >= 1 {
-		if len(venvs) == 1 {
-			registeredVenv := Venv{Path: venvs[0]}
-			return registeredVenv.Activate()
+	// walk up the filesystem to find local envs in parent directories
+	for currDir != filepath.Dir(currDir) {
+		venv, err := n.GetLocalVenv(currDir, python)
+		if err != nil {
+			return err
 		}
-		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
-	}
-	venv, err = addVersion(venv)
-	if err != nil {
-		return err
-	}
-	if !n.IsRegistered(venv) {
-		return VenvNotRegisteredError{Message: "No environment is registered for current directory with this Python version."}
-	}
+		if venvs := n.GetRegisteredVersionsOfVenv(venv, true); python == "" && len(venvs) >= 1 {
+			if len(venvs) == 1 {
+				registeredVenv := Venv{Path: venvs[0]}
+				return registeredVenv.Activate()
+			}
+			return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
+		}
+		venv, err = addVersion(venv)
+		if err != nil {
+			return err
+		}
+		if !n.IsRegistered(venv) {
+			currDir = filepath.Dir(currDir)
+			continue
+		}
 
-	err = venv.Activate()
-	if err != nil {
-		return err
+		err = venv.Activate()
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
+	return VenvNotRegisteredError{Message: "No environment is registered for current directory with this Python version."}
 }
 
 func (n Notary) GetActiveEnv() (Venv, error) {

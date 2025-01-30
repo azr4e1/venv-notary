@@ -61,17 +61,13 @@ func PythonVersion(executable string) (string, error) {
 	return fmt.Sprintf("py%s", versionNo), nil
 }
 
-func createLocalName() (string, error) {
-	currDir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
+func createLocalName(currDir string) (string, error) {
 	headDir := NormalizeName(filepath.Base(currDir))
 	if headDir == "" {
 		return "", errors.New("Invalid venv name. Please use a name that contains only letters, digits, '_' and '-'.")
 	}
 	h := sha256.New()
-	_, err = h.Write([]byte(currDir))
+	_, err := h.Write([]byte(currDir))
 	if err != nil {
 		return "", err
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"os"
 
 	venv "github.com/azr4e1/venv-notary"
 	"github.com/azr4e1/venv-notary/graphics"
@@ -25,7 +26,11 @@ func setupAction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if localVenv {
-		vn, err := n.GetLocalVenv(pythonVersion)
+		currDir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		vn, err := n.GetLocalVenv(currDir, pythonVersion)
 		if err != nil {
 			return err
 		}
