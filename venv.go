@@ -108,7 +108,10 @@ func (v Venv) Activate() error {
 	if v.IsActive() {
 		return errors.New("environment is already active!")
 	}
-	activeShell := shell.NewShell()
+	activeShell, err := shell.NewShell()
+	if err != nil {
+		return err
+	}
 	activateScript := activeShell.GetActivationScript()
 	if activateScript == "" {
 		return errors.New("cannot locate activation script")
@@ -118,7 +121,7 @@ func (v Venv) Activate() error {
 		return errors.New("cannot locate activation script")
 	}
 	activatePath := filepath.Join(v.Path, execDir, activateScript)
-	err := activeShell.Source(activatePath)
+	err = activeShell.Source(activatePath)
 	return err
 }
 

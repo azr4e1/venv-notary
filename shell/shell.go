@@ -69,7 +69,7 @@ func (s Shell) Name() string {
 	}
 }
 
-func NewShell() Shell {
+func NewShell() (Shell, error) {
 	currOs := runtime.GOOS
 
 	var availableShells = []Shell{}
@@ -90,9 +90,11 @@ func NewShell() Shell {
 
 	if err != nil && len(availableShells) > 0 {
 		currentShell = availableShells[0]
+	} else if err != nil {
+		return Shell{}, err
 	}
 
-	return currentShell
+	return currentShell, nil
 }
 
 func (s Shell) GetActivationScript() string {
