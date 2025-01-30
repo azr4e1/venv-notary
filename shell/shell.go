@@ -38,7 +38,7 @@ func (s Shell) Source(script string) error {
 	case fish:
 		command = exec.Command(s.executable, "--interactive", "-C", fmt.Sprintf("source '%s'", script))
 	case powershell:
-		command = exec.Command(s.executable, "-NoExit", "-Command", fmt.Sprintf(". '%s'", script))
+		command = exec.Command(s.executable, "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", fmt.Sprintf(". '%s'", script))
 	default:
 		return errors.New("No shell available.")
 	}
