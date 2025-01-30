@@ -8,33 +8,37 @@ import (
 	"runtime"
 )
 
-type shellType string
+type shellType int
 
 const (
-	bash       shellType = "bash"
-	zsh        shellType = "zsh"
-	fish       shellType = "fish"
-	powershell shellType = "powershell"
+	bash shellType = iota
+	zsh
+	fish
+	powershell
 )
 
-var supportedShells = []shellType{bash, zsh, fish, powershell}
-
-// var os = runtime.GOOS
+var shellExecutables = map[shellType][]string{
+	bash:       []string{"bash", "bash.exe"},
+	zsh:        []string{"zsh", "zsh.exe"},
+	fish:       []string{"fish", "fish.exe"},
+	powershell: []string{"pwsh", "powershell", "powershell.exe"},
+}
 
 type Shell struct {
-	os    string
-	shell shellType
+	os         string
+	name       shellType
+	executable string
 }
 
 func (s Shell) Source(script string) error {
 	var command *exec.Cmd
-	switch sh := s.shell; sh {
+	switch s.name {
 	case bash, zsh:
-		command = exec.Command(string(sh), "-c", fmt.Sprintf("source '%s'; %s", script, sh))
+		command = exec.Command(s.executable, "-c", fmt.Sprintf("source '%s'; %s", script, s.executable))
 	case fish:
-		command = exec.Command(string(sh), "--interactive", "-C", fmt.Sprintf("source '%s'", script))
+		command = exec.Command(s.executable, "--interactive", "-C", fmt.Sprintf("source '%s'", script))
 	case powershell:
-		command = exec.Command(string(sh), "-NoExit", "-Command", fmt.Sprintf(". '%s'", script))
+		command = exec.Command(s.executable, "-NoExit", "-Command", fmt.Sprintf(". '%s'", script))
 	default:
 		return errors.New("No shell available.")
 	}
@@ -51,7 +55,7 @@ func (s Shell) OS() string {
 }
 
 func (s Shell) Name() string {
-	switch s.shell {
+	switch s.name {
 	case bash:
 		return "Bash"
 	case zsh:
@@ -66,31 +70,33 @@ func (s Shell) Name() string {
 }
 
 func NewShell() Shell {
-	newShell := Shell{
-		os: runtime.GOOS,
-	}
+	currOs := runtime.GOOS
 
-	var currentShell shellType
-	var availableShells = []shellType{}
-	for _, sh := range supportedShells {
-		if hasShell(sh) {
-			availableShells = append(availableShells, sh)
+	var availableShells = []Shell{}
+	for name, executables := range shellExecutables {
+		for _, executable := range executables {
+			sh := Shell{
+				os:         currOs,
+				name:       name,
+				executable: executable,
+			}
+			if hasShell(sh) {
+				availableShells = append(availableShells, sh)
+			}
 		}
 	}
 
-	currentShell, _ = getShellName(availableShells)
+	currentShell, err := getShellName(availableShells)
 
-	if currentShell == "" && len(availableShells) > 0 {
+	if err != nil && len(availableShells) > 0 {
 		currentShell = availableShells[0]
 	}
 
-	newShell.shell = currentShell
-
-	return newShell
+	return currentShell
 }
 
 func (s Shell) GetActivationScript() string {
-	switch s.shell {
+	switch s.name {
 	case bash, zsh:
 		return "activate"
 	case fish:

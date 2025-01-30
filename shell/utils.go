@@ -2,9 +2,10 @@ package shell
 
 import (
 	"errors"
-	ps "github.com/mitchellh/go-ps"
 	"os"
 	"os/exec"
+
+	ps "github.com/mitchellh/go-ps"
 )
 
 var shellVariables = map[shellType]string{
@@ -14,13 +15,13 @@ var shellVariables = map[shellType]string{
 	powershell: "PSEdition",
 }
 
-func hasShell(shellName shellType) bool {
+func hasShell(shellName Shell) bool {
 	var command *exec.Cmd
-	switch shellName {
+	switch shellName.name {
 	case bash, fish, zsh:
-		command = exec.Command(string(shellName), "--version")
+		command = exec.Command(shellName.executable, "--version")
 	case powershell:
-		command = exec.Command(string(shellName), "-H")
+		command = exec.Command(shellName.executable, "-H")
 	}
 	_, err := command.CombinedOutput()
 	if err != nil {
@@ -29,17 +30,18 @@ func hasShell(shellName shellType) bool {
 	return true
 }
 
-func getShellName(availableShells []shellType) (shellType, error) {
+func getShellName(availableShells []Shell) (Shell, error) {
 	ppid := os.Getppid()
 	proc, err := ps.FindProcess(ppid)
 	if err != nil {
-		return "", err
+		return Shell{}, err
 	}
 
+	executable := proc.Executable()
 	for _, sh := range availableShells {
-		if sh == shellType(proc.Executable()) {
+		if executable == sh.executable {
 			return sh, nil
 		}
 	}
-	return "", errors.New("couldn't detect current shell among the supported ones")
+	return Shell{}, errors.New("couldn't detect current shell among the supported ones")
 }
