@@ -206,7 +206,7 @@ func getDataHome() (string, error) {
 			if err != nil {
 				return "", err
 			}
-			dataHome = filepath.Join(home, "AppData/Local")
+			dataHome = filepath.Join(home, "AppData", "Local")
 		}
 	}
 	return dataHome, nil
@@ -222,4 +222,16 @@ func getVenvExecDir() string {
 	}
 
 	return execDir
+}
+
+func getVenvPythonExec() string {
+	var pythonExec string
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		pythonExec = "python"
+	case "windows":
+		pythonExec = "python.exe"
+	}
+
+	return pythonExec
 }

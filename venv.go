@@ -44,7 +44,11 @@ func (v Venv) IsVenv() bool {
 	if !stat.Mode().IsRegular() {
 		return false
 	}
-	pythonPath := filepath.Join(dir, execDir, "python")
+	pythonExec := getVenvPythonExec()
+	if pythonExec == "" {
+		return false
+	}
+	pythonPath := filepath.Join(dir, execDir, pythonExec)
 	stat, err = os.Stat(pythonPath)
 	if err != nil {
 		return false
@@ -67,7 +71,10 @@ func (v Venv) Create() error {
 	}
 	executable := v.Python
 	if executable == "" {
-		executable = "python"
+		executable = getVenvPythonExec()
+		if executable == "" {
+			return errors.New("couldn't find python binary")
+		}
 	}
 	cmdEls := []string{executable, "-m", "venv"}
 	if v.Name != "" {
@@ -126,7 +133,7 @@ func (v Venv) IsActive() bool {
 func (v Venv) GetPythonVersion() (string, error) {
 	executable := v.Python
 	if executable == "" {
-		executable = "python"
+		executable = getVenvPythonExec()
 	}
 	return PythonVersion(executable)
 }
