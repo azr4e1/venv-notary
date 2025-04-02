@@ -249,8 +249,20 @@ func newListModel(localVenv, globalVenv bool, pythonExec string) (tea.Model, err
 	return lm, nil
 }
 
-func ListMain(localVenv, globalVenv *bool, pythonExec *string, stdout io.Writer) cobraFunc {
+func ListMain(localVenv, globalVenv *bool, pythonExec *string, jsonOutput *bool, stdout io.Writer) cobraFunc {
 	return func(cmd *cobra.Command, args []string) error {
+		if *jsonOutput {
+			notary, err := vn.NewNotary()
+			if err != nil {
+				return err
+			}
+			output, err := notary.ToJson(*globalVenv, *localVenv, *pythonExec)
+			if err != nil {
+				return err
+			}
+			fmt.Fprint(stdout, output)
+			return nil
+		}
 		m, err := newListModel(*localVenv, *globalVenv, *pythonExec)
 		if err != nil {
 			return err

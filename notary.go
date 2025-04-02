@@ -1,6 +1,7 @@
 package venv
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -402,4 +403,47 @@ func (n Notary) GetActiveEnv() (Venv, error) {
 		return venv, nil
 	}
 	return Venv{}, errors.New("No active registered virtual environments.")
+}
+
+func (n Notary) ToJson(global, local bool, pythonExec string) (string, error) {
+	n.GetVenvs()
+	type qualifiedVenv struct {
+		Path       string   `json:"path"`
+		Name       string   `json:"name"`
+		Executable string   `json:"version"`
+		Type       Location `json:"type"`
+	}
+	jsonList := []qualifiedVenv{}
+	pythonVersion := ""
+	if pythonExec != "" {
+		var err error
+		pythonVersion, err = PythonVersion(pythonExec)
+		if err != nil {
+			return "", err
+		}
+	}
+	for p, t := range n.venvList {
+		name, version := ExtractVersion(filepath.Base(p))
+		if t == GlobalLoc && local {
+			continue
+		}
+		if t == LocalLoc && global {
+			continue
+		}
+		if pythonVersion != "" && pythonVersion != version {
+			continue
+		}
+		if t == LocalLoc {
+			name = RemoveHash(name)
+		}
+		v := qualifiedVenv{
+			Path:       p,
+			Type:       t,
+			Name:       name,
+			Executable: version,
+		}
+		jsonList = append(jsonList, v)
+	}
+	jsonOutput, err := json.MarshalIndent(jsonList, "", "  ")
+	return string(jsonOutput), err
 }
