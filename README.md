@@ -1,5 +1,3 @@
-# venv-notary
-
 venv-notary is a simple utility to easily manage your Python environment needs. It follows the UNIX phylosophy of:
 
 > do one thing and do it well
