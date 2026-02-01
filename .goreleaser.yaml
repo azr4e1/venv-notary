@@ -1,0 +1,13 @@
+version: 2
+builds:
+  - main: ./vn/main.go
+    binary: vn
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - format: tar.gz
