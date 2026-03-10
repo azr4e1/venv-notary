@@ -98,29 +98,44 @@ func (v Venv) Delete() error {
 		err := os.RemoveAll(v.Path)
 		return err
 	}
-	return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
+	return fmt.Errorf("'%s' is not a python environment!", v.Path)
 }
 
-func (v Venv) Activate() error {
+func (v Venv) getActivation() (shell.Shell, string, error) {
+	emptyShell := shell.Shell{}
 	if !v.IsVenv() {
-		return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
+		return emptyShell, "", fmt.Errorf("'%s' is not a python environment!", v.Path)
 	}
 	if v.IsActive() {
-		return errors.New("environment is already active!")
+		return emptyShell, "", errors.New("environment is already active!")
 	}
 	activeShell, err := shell.NewShell()
 	if err != nil {
-		return err
+		return emptyShell, "", err
 	}
 	activateScript := activeShell.GetActivationScript()
 	if activateScript == "" {
-		return errors.New("cannot locate activation script")
+		return emptyShell, "", errors.New("cannot locate activation script")
 	}
 	execDir := getVenvExecDir()
 	if execDir == "" {
-		return errors.New("cannot locate activation script")
+		return emptyShell, "", errors.New("cannot locate activation script")
 	}
 	activatePath := filepath.Join(v.Path, execDir, activateScript)
+
+	return activeShell, activatePath, nil
+}
+
+func (v Venv) Run(cmd string, args ...string) (string, error) {
+	// command :=
+	return "", nil
+}
+
+func (v Venv) Activate() error {
+	activeShell, activatePath, err := v.getActivation()
+	if err != nil {
+		return err
+	}
 	err = activeShell.Source(activatePath)
 	return err
 }

@@ -18,10 +18,10 @@ const (
 )
 
 var shellExecutables = map[shellType][]string{
-	bash:       []string{"bash", "bash.exe"},
-	zsh:        []string{"zsh", "zsh.exe"},
-	fish:       []string{"fish", "fish.exe"},
-	powershell: []string{"pwsh", "powershell", "powershell.exe"},
+	bash:       {"bash", "bash.exe"},
+	zsh:        {"zsh", "zsh.exe"},
+	fish:       {"fish", "fish.exe"},
+	powershell: {"pwsh", "powershell", "powershell.exe"},
 }
 
 type Shell struct {
