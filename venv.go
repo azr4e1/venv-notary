@@ -98,12 +98,35 @@ func (v Venv) Delete() error {
 		err := os.RemoveAll(v.Path)
 		return err
 	}
-	return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
+	return fmt.Errorf("'%s' is not a python environment!", v.Path)
+}
+
+func (v Venv) Run(cmd string, args ...string) error {
+	execDir := getVenvExecDir()
+	binDir := filepath.Join(v.Path, execDir)
+
+	env := os.Environ()
+	// Prepend venv bin to PATH
+	env = append(env, "VIRTUAL_ENV="+v.Path)
+	env = append(env, "PATH="+binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	// NB: exec.Command resolves the binary using the current process's PATH via
+	// LookPath, not the env we set later. We need to use the full path from the venv
+	// bin if available, otherwise fall back to system PATH
+	cmdPath := filepath.Join(binDir, cmd)
+	if _, err := os.Stat(cmdPath); errors.Is(err, fs.ErrNotExist) {
+		cmdPath = cmd
+	}
+	command := exec.Command(cmdPath, args...)
+	command.Env = env
+	command.Stderr, command.Stdout, command.Stdin = os.Stderr, os.Stdout, os.Stdin
+
+	return command.Run()
 }
 
 func (v Venv) Activate() error {
 	if !v.IsVenv() {
-		return errors.New(fmt.Sprintf("'%s' is not a python environment!", v.Path))
+		return fmt.Errorf("'%s' is not a python environment!", v.Path)
 	}
 	if v.IsActive() {
 		return errors.New("environment is already active!")

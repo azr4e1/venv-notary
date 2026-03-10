@@ -19,7 +19,7 @@ var (
 		Use:     "vn",
 		Short:   "A wrapper for python-venv",
 		Long:    `venv-notary is an application that makes it easy to manage global and local virtual environments for Python.`,
-		Version: "0.8.0",
+		Version: "0.9.0",
 	}
 )
 
@@ -37,6 +37,7 @@ func init() {
 	rootCmd.AddCommand(activateCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(cleanCmd)
+	rootCmd.AddCommand(runCmd)
 }
 
 func initConfig() {

@@ -396,6 +396,64 @@ func (n Notary) ActivateLocal(python string) error {
 	return VenvNotRegisteredError{Message: "No environment is registered for current directory with this Python version."}
 }
 
+func (n Notary) RunGlobal(name, python, cmd string, args ...string) error {
+	venv, err := n.GetGlobalVenv(name, python)
+	if err != nil {
+		return err
+	}
+	if venvs := n.GetRegisteredVersionsOfVenv(venv, false); python == "" && len(venvs) >= 1 {
+		if len(venvs) == 1 {
+			registeredVenv := Venv{Path: venvs[0]}
+			return registeredVenv.Run(cmd, args...)
+		}
+		return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
+	}
+	venv, err = addVersion(venv)
+	if err != nil {
+		return err
+	}
+	if !n.IsRegistered(venv) {
+		return VenvNotRegisteredError{Message: fmt.Sprintf("No environment with name '%s' is registered with this Python version.", name)}
+	}
+	err = venv.Run(cmd, args...)
+	return err
+}
+func (n Notary) RunLocal(python, cmd string, args ...string) error {
+	currDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	// walk up the filesystem to find local envs in parent directories
+	for currDir != filepath.Dir(currDir) {
+		venv, err := n.GetLocalVenv(currDir, python)
+		if err != nil {
+			return err
+		}
+		if venvs := n.GetRegisteredVersionsOfVenv(venv, true); python == "" && len(venvs) >= 1 {
+			if len(venvs) == 1 {
+				registeredVenv := Venv{Path: venvs[0]}
+				return registeredVenv.Run(cmd, args...)
+			}
+			return MultipleVersionsError{"Multiple Python versions associated with this environment. Select one Python version."}
+		}
+		venv, err = addVersion(venv)
+		if err != nil {
+			return err
+		}
+		if !n.IsRegistered(venv) {
+			currDir = filepath.Dir(currDir)
+			continue
+		}
+
+		err = venv.Run(cmd, args...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return VenvNotRegisteredError{Message: "No environment is registered for current directory with this Python version."}
+}
+
 func (n Notary) GetActiveEnv() (Venv, error) {
 	venv := Venv{Path: os.Getenv("VIRTUAL_ENV")}
 	_, ok := n.venvList[venv.Path]

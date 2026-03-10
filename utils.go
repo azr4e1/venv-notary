@@ -20,18 +20,18 @@ const (
 func NormalizeName(name string) string {
 	name = strings.TrimSpace(strings.ToLower(name))
 	name = strings.Join(strings.Fields(name), "_")
-	normalizedName := ""
+	var normalizedName strings.Builder
 	for _, r := range name {
 		switch {
 		case r >= 'a' && r <= 'z':
-			normalizedName += string(r)
+			normalizedName.WriteString(string(r))
 		case r >= '0' && r <= '9':
-			normalizedName += string(r)
+			normalizedName.WriteString(string(r))
 		case r == '_' || r == '-':
-			normalizedName += string(r)
+			normalizedName.WriteString(string(r))
 		}
 	}
-	return normalizedName
+	return normalizedName.String()
 }
 
 func getMinorVersion(version string) string {

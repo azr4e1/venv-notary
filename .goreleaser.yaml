@@ -10,4 +10,4 @@ builds:
       - amd64
       - arm64
 archives:
-  - format: tar.gz
+  - formats: tar.gz
