@@ -136,6 +136,32 @@ Delete all local environments that match this pattern:
 vn clean -l -n "data.*$"
 ```
 
+### Run a command in an environment
+
+Run a command in a global environment without activating it:
+
+```bash
+vn run -g data-science jupyter notebook
+```
+
+Run a command in the local environment:
+
+```bash
+vn run -l pytest
+```
+
+Run a command with a specific Python version:
+
+```bash
+vn run -l -p python3.9 python script.py
+```
+
+Arguments after the command name are passed through to the command. Use `--` to separate flags from the command if needed:
+
+```bash
+vn run -l -- pytest --tb=short
+```
+
 ### List
 
 Finally, you can list your local/global environments, optionally filtering by Python version.
@@ -156,4 +182,16 @@ List only global environment with Python version 3.12:
 
 ```bash
 vn list -g -p python3.12
+```
+
+Output in JSON format:
+
+```bash
+vn list -j
+```
+
+The `-j` flag can be combined with any other `list` flags:
+
+```bash
+vn list -l -j
 ```
