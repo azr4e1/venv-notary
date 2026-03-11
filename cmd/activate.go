@@ -10,41 +10,34 @@ import (
 
 var (
 	activateCmd = &cobra.Command{
-		Use:               "activate",
-		Short:             "Activate a local or global environment in a new shell",
-		Args:              cobra.MaximumNArgs(1),
-		RunE:              activateCobraFunction,
-		ValidArgsFunction: venvCompletion,
+		Use:   "activate",
+		Short: "Activate a local or global environment in a new shell (default local)",
+		Args:  cobra.NoArgs,
+		RunE:  activateCobraFunction,
 	}
 )
 
 func activateCobraFunction(cmd *cobra.Command, args []string) error {
-	if len(args) > 0 && localVenv {
-		return errors.New("you cannot activate a global venv and a local venv at the same time.")
-	}
 	notary, err := venv.NewNotary()
 	if err != nil {
 		return err
 	}
-	if localVenv {
-		err = activateLocal(notary, cmd, args)
-		if err != nil {
-			return err
-		}
-	} else if len(args) > 0 {
+	if globalVenvName != "" {
 		err = activateGlobal(notary, cmd, args)
 		if err != nil {
 			return err
 		}
 	} else {
-		return errors.New("you need to either activate a local or global venv.")
+		err = activateLocal(notary, cmd, args)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func activateGlobal(notary venv.Notary, cmd *cobra.Command, args []string) error {
-	name := args[0]
-	err := notary.ActivateGlobal(name, pythonVersion)
+	err := notary.ActivateGlobal(globalVenvName, pythonVersion)
 	if err != nil {
 		if errors.As(err, &venv.VenvNotRegisteredError{}) {
 			// err = notary.CreateGlobal(name, pythonVersion)
@@ -56,7 +49,7 @@ func activateGlobal(notary venv.Notary, cmd *cobra.Command, args []string) error
 			if err != nil {
 				return err
 			}
-			err = notary.ActivateGlobal(name, pythonVersion)
+			err = notary.ActivateGlobal(globalVenvName, pythonVersion)
 			return err
 		}
 		return err
@@ -86,6 +79,7 @@ func activateLocal(notary venv.Notary, cmd *cobra.Command, args []string) error 
 }
 
 func init() {
-	activateCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "activate local venv.")
+	activateCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "activate global venv.")
 	activateCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
+	activateCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"os"
 
 	venv "github.com/azr4e1/venv-notary"
@@ -27,16 +26,13 @@ func runCobraFunction(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if localVenv {
-		err = notary.RunLocal(pythonVersion, comm, commArgs...)
+	if globalVenvName != "" {
+		err = notary.RunGlobal(globalVenvName, pythonVersion, comm, commArgs...)
 		if err != nil {
 			return err
 		}
 	} else {
-		if globalVenvName == "" {
-			return errors.New("you need to either activate a local or global venv.")
-		}
-		err = notary.RunGlobal(globalVenvName, pythonVersion, comm, commArgs...)
+		err = notary.RunLocal(pythonVersion, comm, commArgs...)
 		if err != nil {
 			return err
 		}
@@ -45,9 +41,7 @@ func runCobraFunction(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	runCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "activate local venv.")
 	runCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "activate global venv.")
 	runCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
-	runCmd.MarkFlagsMutuallyExclusive("global", "local")
 	runCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }
