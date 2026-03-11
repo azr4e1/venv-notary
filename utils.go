@@ -122,11 +122,11 @@ func SafeDir(f func() error) error {
 	if err != nil {
 		return err
 	}
-	err = f()
-	if err != nil {
-		return err
-	}
+	ferr := f()
 	err = os.Chdir(currentDir)
+	if ferr != nil {
+		return ferr
+	}
 	return err
 }
 

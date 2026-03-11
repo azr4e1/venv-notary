@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-
 	venv "github.com/azr4e1/venv-notary"
 	"github.com/spf13/cobra"
 )
@@ -17,8 +15,7 @@ var (
 
 func runCobraFunction(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
-		cmd.Help()
-		os.Exit(0)
+		return cmd.Help()
 	}
 	comm := args[0]
 	commArgs := args[1:]
@@ -41,7 +38,7 @@ func runCobraFunction(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	runCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "activate global venv.")
-	runCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
+	runCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "run in global venv")
+	runCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version")
 	runCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }
