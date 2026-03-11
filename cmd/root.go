@@ -38,6 +38,7 @@ func init() {
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(cleanCmd)
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(cloneCmd)
 }
 
 func initConfig() {
