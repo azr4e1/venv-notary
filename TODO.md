@@ -1,0 +1,2 @@
+- [ ] clone environment
+- [ ] rename global environment
