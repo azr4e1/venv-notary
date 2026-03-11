@@ -42,66 +42,64 @@ vn help clean
 
 ### Create a new environment
 
-Create a new global environment:
+Create a local environment (default):
 
 ```bash
-vn create data-science
+vn create
 ```
 
-
-Create a new local environment:
-
-```bash
-vn create -l
-````
-
-
-Create a new environment with a specific Python version:
+Create a global environment:
 
 ```bash
-vn create python39-venv -p python3.9
+vn create -g data-science
+```
+
+Create an environment with a specific Python version:
+
+```bash
+vn create -g python39-venv -p python3.9
 ```
 
 ### Activate an environment
 
+Activate the local environment (default):
+
+```bash
+vn activate
+```
+
 Activate a global environment:
 
 ```bash
-vn activate data-science
+vn activate -g data-science
 ```
 
-Activate a local environment:
+Activate with a specific Python version:
 
 ```bash
-vn activate -l
-```
-
-Activate a local environment with a specific version:
-
-```bash
-vn activate -l -p python3.9
+vn activate -p python3.9
 ```
 
 **Note**: if the environment you want to activate doesn't exist, it will automatically be created.
 
 ### Delete an environment
 
+Delete the local environment (default):
+
+```bash
+vn delete
+```
+
 Delete a global environment:
 
 ```bash
-vn delete data-science
+vn delete -g data-science
 ```
 
-Delete a local environment:
+Delete the local environment with a specific Python version:
 
 ```bash
-vn delete -l
-```
-
-Delete a local environment with specific version:
-
-```bash
-vn delete -l -p python3.9
+vn delete -p python3.9
 ```
 
 ### Clean local/global environments
@@ -138,28 +136,28 @@ vn clean -l -n "data.*$"
 
 ### Run a command in an environment
 
-Run a command in a global environment without activating it:
+Run a command in the local environment (default):
+
+```bash
+vn run pytest
+```
+
+Run a command in a global environment:
 
 ```bash
 vn run -g data-science jupyter notebook
 ```
 
-Run a command in the local environment:
-
-```bash
-vn run -l pytest
-```
-
 Run a command with a specific Python version:
 
 ```bash
-vn run -l -p python3.9 python script.py
+vn run -p python3.9 python script.py
 ```
 
 Arguments after the command name are passed through to the command. Use `--` to separate flags from the command if needed:
 
 ```bash
-vn run -l -- pytest --tb=short
+vn run -- pytest --tb=short
 ```
 
 ### List

@@ -79,7 +79,7 @@ func activateLocal(notary venv.Notary, cmd *cobra.Command, args []string) error 
 }
 
 func init() {
-	activateCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "activate global venv.")
-	activateCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
+	activateCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "activate global venv")
+	activateCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version")
 	activateCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }

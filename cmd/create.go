@@ -37,7 +37,7 @@ func createAction(cmd *cobra.Command, args []string) func() error {
 }
 
 func init() {
-	createCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "create a global venv.")
-	createCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version.")
+	createCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "create a global venv")
+	createCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "use this python version")
 	createCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }

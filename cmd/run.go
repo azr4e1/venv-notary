@@ -10,7 +10,7 @@ import (
 var (
 	runCmd = &cobra.Command{
 		Use:   "run",
-		Short: "Run a command in the virtual environment",
+		Short: "Run a command in the virtual environment (default local)",
 		RunE:  runCobraFunction,
 	}
 )

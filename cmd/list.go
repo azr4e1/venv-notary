@@ -17,9 +17,9 @@ var (
 )
 
 func init() {
-	listCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "list only global venvs.")
-	listCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "list only local venvs.")
-	listCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "filter by python version.")
-	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "output in json format.")
+	listCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "list only global venvs")
+	listCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "list only local venvs")
+	listCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "filter by python version")
+	listCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "output in json format")
 	listCmd.MarkFlagsMutuallyExclusive("local", "global")
 }

@@ -69,7 +69,7 @@ func deleteAction(cmd *cobra.Command, args []string) func() error {
 }
 
 func init() {
-	deleteCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "delete a global venv.")
+	deleteCmd.Flags().StringVarP(&globalVenvName, "global", "g", "", "delete a global venv")
 	deleteCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "delete venv with this python version")
 	deleteCmd.RegisterFlagCompletionFunc("global", venvCompletion)
 }

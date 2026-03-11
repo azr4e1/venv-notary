@@ -72,8 +72,8 @@ func deleteVenv(vPath []string, python, namePattern string) error {
 }
 
 func init() {
-	cleanCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "delete all local venvs.")
-	cleanCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "delete all global venvs.")
+	cleanCmd.Flags().BoolVarP(&localVenv, "local", "l", false, "delete all local venvs")
+	cleanCmd.Flags().BoolVarP(&globalVenv, "global", "g", false, "delete all global venvs")
 	cleanCmd.Flags().StringVarP(&pythonVersion, "python", "p", "", "delete venvs with this python version")
 	cleanCmd.Flags().StringVarP(&namePattern, "name", "n", "", "delete venvs with this name pattern")
 	cleanCmd.MarkFlagsOneRequired("local", "global")
